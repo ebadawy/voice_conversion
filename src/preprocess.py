@@ -13,7 +13,7 @@ print(opt)
 feats = {}
 
 for spkr in range(opt.n_spkrs):
-    wavs = ls('%s/spkr_%s | grep .wav'%(opt.dataset, spkr+1))[:1]
+    wavs = ls('%s/spkr_%s | grep .wav'%(opt.dataset, spkr+1))
     feats[spkr] = [None]*len(wavs)
     for i, wav in tqdm(enumerate(wavs), total=len(wavs), desc="spkr_%d"%(spkr+1)):
         sample = preprocess_wav('%s/spkr_%s/%s'%(opt.dataset, spkr+1, wav))
