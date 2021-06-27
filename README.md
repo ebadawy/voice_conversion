@@ -38,7 +38,7 @@ python train.py --model_name [name of the model] --dataset [path/to/dataset]
 
 Examples of generated audios using flicker8k audio dataset https://ebadawy.github.io/post/speech_style_transfer.
 
-## ToDo:
+## TODO:
 
 - Rewrite `preprocess.py` to handle:
   - multi-process feature extraction
