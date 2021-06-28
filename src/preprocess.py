@@ -14,11 +14,11 @@ feats = {}
 
 for spkr in range(opt.n_spkrs):
     wavs = ls('%s/spkr_%s | grep .wav'%(opt.dataset, spkr+1))
-    feats[spkr] = [None]*len(wavs)
+    feats[spkr] = []
     for i, wav in tqdm(enumerate(wavs), total=len(wavs), desc="spkr_%d"%(spkr+1)):
         sample = preprocess_wav('%s/spkr_%s/%s'%(opt.dataset, spkr+1, wav))
         spect = melspectrogram(sample)
         if spect.shape[1] >= 128:
-            feats[spkr][i] = spect
+            feats[spkr].append(spect)
 
 pickle.dump(feats,open('%s/%s.pickle'%(opt.dataset, opt.model_name),'wb'))
