@@ -21,7 +21,7 @@ class DataProc(torch.utils.data.Dataset):
     def __getitem__(self, item):
         rslt = []
         for i in range(0,len(self.data_dict.keys())):
-            # chose random item based on prop distribution (lenght of each sample)
+            # chose random item based on prop distribution (length of each sample)
             tmp_lens = [j.shape[1] for j in self.data_dict[i]]
             item = np.random.choice(len(tmp_lens),p=tmp_lens/np.sum(tmp_lens))
             rslt.append(self.random_sample(i,item))
