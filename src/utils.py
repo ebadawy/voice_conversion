@@ -12,6 +12,7 @@ import librosa
 import struct
 from params import *
 from scipy.signal import lfilter
+import soundfile as sf
 
 try:
     import webrtcvad
@@ -121,7 +122,7 @@ def load_wav(path):
 
 
 def save_wav(x, path):
-    librosa.output.write_wav(path, x.astype(np.float32), sr=sample_rate)
+    sf.write(path, x.astype(np.float32), sample_rate)
 
 
 def split_signal(x):
