@@ -77,11 +77,11 @@ if cuda:
 
 if opt.epoch != 0:
     # Load pretrained models
-    encoder.load_state_dict(torch.load("saved_models/%s/encoder_%d.pth" % (opt.model_name, opt.epoch)))
-    G1.load_state_dict(torch.load("saved_models/%s/G1_%d.pth" % (opt.model_name, opt.epoch)))
-    G2.load_state_dict(torch.load("saved_models/%s/G2_%d.pth" % (opt.model_name, opt.epoch)))
-    D1.load_state_dict(torch.load("saved_models/%s/D1_%d.pth" % (opt.model_name, opt.epoch)))
-    D2.load_state_dict(torch.load("saved_models/%s/D2_%d.pth" % (opt.model_name, opt.epoch)))
+    encoder.load_state_dict(torch.load("saved_models/%s/encoder_e%02d.pth" % (opt.model_name, opt.epoch)))
+    G1.load_state_dict(torch.load("saved_models/%s/G1_e%02d.pth" % (opt.model_name, opt.epoch)))
+    G2.load_state_dict(torch.load("saved_models/%s/G2_e%02d.pth" % (opt.model_name, opt.epoch)))
+    D1.load_state_dict(torch.load("saved_models/%s/D1_e%02d.pth" % (opt.model_name, opt.epoch)))
+    D2.load_state_dict(torch.load("saved_models/%s/D2_e%02d.pth" % (opt.model_name, opt.epoch)))
 else:
     # Initialize weights
     encoder.apply(weights_init_normal)
