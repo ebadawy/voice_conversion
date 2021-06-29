@@ -12,11 +12,9 @@ from models import *
 from data_proc import DataProc
 
 import torch.nn as nn
-import torch.nn.functional as F
 import torch
 
 from utils import plot_batch_eval
-
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--epoch", type=int, default=0, help="saved version based on epoch to test from")
@@ -72,9 +70,6 @@ G1.eval()
 G2.eval()
 
 Tensor = torch.cuda.FloatTensor if cuda else torch.Tensor
-
-# Prepare dataloader
-# TODO: Make it so it doesnt do it randomly (for now will just do it randomly)
 dataloader = torch.utils.data.DataLoader(
 	DataProc(opt),
 	batch_size=opt.batch_size,
