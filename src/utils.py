@@ -13,6 +13,7 @@ import struct
 from params import *
 from scipy.signal import lfilter
 import soundfile as sf
+import matplotlib.pyplot as plt
 
 try:
     import webrtcvad
@@ -211,3 +212,77 @@ def reconstruct_waveform(mel, n_iter=32):
         S, n_iter=n_iter,
         hop_length=hop_length, win_length=win_length)
     return wav
+
+def to_numpy(batch):
+    batch = batch.detach().cpu().numpy()
+    batch = np.squeeze(batch)
+    return batch
+
+def plot_mel_transfer_train(save_path, curr_epoch, mel_in, mel_recon, mel_out, mel_target):
+    """Visualises melspectrogram style transfer in training, with target specified"""
+    fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(6, 6))
+    
+    ax[0,0].imshow(np.rot90(mel_in, 2), interpolation="None")
+    ax[0,0].set(title='Input')
+    ax[0,0].set_ylabel('Mels')
+    ax[0,0].axes.xaxis.set_ticks([])
+    ax[0,0].axes.xaxis.set_ticks([])
+    
+    ax[1,0].imshow(np.rot90(mel_recon, 2), interpolation="None")
+    ax[1,0].set(title='Reconstructed Input')
+    ax[1,0].set_xlabel('Frames')
+    ax[1,0].set_ylabel('Mels')
+
+    ax[0,1].imshow(np.rot90(mel_out, 2), interpolation="None")
+    ax[0,1].set(title='Output')
+    ax[0,1].axes.yaxis.set_ticks([])
+    ax[0,1].axes.xaxis.set_ticks([])
+    
+    ax[1,1].imshow(np.rot90(mel_target, 2), interpolation="None")
+    ax[1,1].set(title='Target')
+    ax[1,1].set_xlabel('Frames')
+    ax[1,1].axes.yaxis.set_ticks([])
+    
+    fig.suptitle('Epoch ' + str(curr_epoch))
+    plt.savefig(save_path)
+    plt.close()
+    
+def plot_batch_train(modelname, direction, curr_epoch, SRC, recon_SRC, fake_TRGT, real_TRGT):
+    """Plots all melspectrogram results in a batch with real_TRGT included"""
+    SRC, recon_SRC, fake_TRGT, real_TRGT = to_numpy(SRC), to_numpy(recon_SRC), to_numpy(fake_TRGT), to_numpy(real_TRGT)
+    i = 1
+    for src, recon_src, fake_target, real_target in zip(SRC, recon_SRC, fake_TRGT, real_TRGT):
+        fname = "out_train/%s/%s/%s_e%02d_n%s.png"%(modelname, direction, direction, curr_epoch, i)
+        plot_mel_transfer_train(fname, curr_epoch, src, recon_src, fake_target, real_target)
+        i += 1
+    
+def plot_mel_transfer_eval(save_path, mel_in, mel_recon, mel_out):
+    """Visualises melspectrogram style transfer in testing, with target implictly learnt"""
+    fig, ax = plt.subplots(nrows=1, ncols=3, sharex=True, figsize=(6,3))
+    
+    ax[0].imshow(np.rot90(mel_in, 2), interpolation="None")
+    ax[0].set(title='Input')
+    ax[0].set_ylabel('Mels')
+    
+    ax[1].imshow(np.rot90(mel_recon, 2), interpolation="None")
+    ax[1].set(title='Reconstructed Input')
+    ax[1].axes.yaxis.set_ticks([])
+
+    ax[2].imshow(np.rot90(mel_out, 2), interpolation="None")
+    ax[2].set(title='Output')
+    ax[2].set_xlabel('Frames')
+    ax[2].axes.yaxis.set_ticks([])
+
+    plt.savefig(save_path)
+    plt.close()
+   
+    
+def plot_batch_eval(modelname, direction, batchno, SRC, recon_SRC, fake_TRGT):
+    """Plots all melspectrogram results in a batch with real_TRGT excluded"""
+    SRC, recon_SRC, fake_TRGT = to_numpy(SRC), to_numpy(recon_SRC), to_numpy(fake_TRGT)
+    i = 1
+    for src, recon_src, fake_target in zip(SRC, recon_SRC, fake_TRGT):
+        fname = "out_eval/%s/%s/%s_b_n%s.png"%(modelname, direction, direction, batchno, i)
+        plot_mel_transfer_eval(fname, src, recon_src, fake_target)
+        i += 1
+        
