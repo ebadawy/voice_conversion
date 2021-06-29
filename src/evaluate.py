@@ -38,7 +38,6 @@ print(opt)
 cuda = True if torch.cuda.is_available() else False
 
 # Create inference output directories for both transfer directions
-os.makedirs("out_eval/%s" % opt.model_name, exist_ok=True)
 os.makedirs("out_eval/%s/plot_A2B/" % opt.model_name, exist_ok=True)
 os.makedirs("out_eval/%s/plot_B2A/" % opt.model_name, exist_ok=True)
 
@@ -122,3 +121,5 @@ for i, batch in progress:
     if i % opt.plot_interval == 0:
         plot_batch_eval(opt.model_name, 'plot_A2B', i, X1, recon_X1, fake_X2)
         plot_batch_eval(opt.model_name, 'plot_B2A', i, X2, recon_X2, fake_X1)
+        
+    # TODO: save output in pickle format
