@@ -53,7 +53,7 @@ class ResidualBlock(nn.Module):
 
 
 class Encoder(nn.Module):
-    def __init__(self, in_channels=3, dim=64, n_downsample=2, shared_block=None):
+    def __init__(self, in_channels=3, dim=64, n_downsample=2, final_block=None):
         super(Encoder, self).__init__()
 
         # Initial convolution block
@@ -78,7 +78,7 @@ class Encoder(nn.Module):
             layers += [ResidualBlock(dim)]
 
         self.model_blocks = nn.Sequential(*layers)
-        self.shared_block = shared_block
+        self.final_block = final_block
 
     def reparameterization(self, mu):
         Tensor = torch.cuda.FloatTensor if mu.is_cuda else torch.FloatTensor
@@ -87,7 +87,7 @@ class Encoder(nn.Module):
 
     def forward(self, x):
         x = self.model_blocks(x)
-        mu = self.shared_block(x)
+        mu = self.final_block(x)
         z = self.reparameterization(mu)
         return mu, z
 
