@@ -7,7 +7,7 @@ from utils import ls, preprocess_wav, melspectrogram
 parser = argparse.ArgumentParser()
 parser.add_argument("--model_name", type=str, help="name of the model")
 parser.add_argument("--dataset", type=str, help="path to dataset")
-parser.add_argument("--n_spkrs", type=int, default=2, help="size of the batches")
+parser.add_argument("--n_spkrs", type=int, default=2, help="number of speakers for conversion")
 
 opt = parser.parse_args()
 print(opt)
@@ -22,4 +22,4 @@ for spkr in range(opt.n_spkrs):
         if spect.shape[1] >= num_samples:
             feats[spkr].append(spect)
 
-pickle.dump(feats,open('%s/%s.pickle'%(opt.dataset, opt.model_name),'wb'))
+pickle.dump(feats,open('%s/data.pickle'%(opt.dataset),'wb'))

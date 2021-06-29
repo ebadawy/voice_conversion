@@ -21,7 +21,7 @@ parser.add_argument("--epoch", type=int, default=0, help="epoch to start trainin
 parser.add_argument("--n_epochs", type=int, default=100, help="number of epochs of training")
 parser.add_argument("--model_name", type=str, help="name of the model")
 parser.add_argument("--dataset", type=str, help="path to dataset")
-parser.add_argument("--n_spkrs", type=int, default=2, help="size of the batches")
+parser.add_argument("--n_spkrs", type=int, default=2, help="number of speakers for conversion")
 parser.add_argument("--batch_size", type=int, default=4, help="size of the batches")
 parser.add_argument("--lr", type=float, default=0.0001, help="adam: learning rate")
 parser.add_argument("--b1", type=float, default=0.5, help="adam: decay of first order momentum of gradient")
@@ -54,8 +54,7 @@ input_shape = (opt.channels, opt.img_height, opt.img_width)
 shared_dim = opt.dim * 2 ** opt.n_downsample
 
 # Initialize generator and discriminator
-shared_E = ResidualBlock(features=shared_dim)
-encoder = Encoder(dim=opt.dim, in_channels=opt.channels, n_downsample=opt.n_downsample, shared_block=shared_E)
+encoder = Encoder(dim=opt.dim, in_channels=opt.channels, n_downsample=opt.n_downsample, final_block=ResidualBlock(features=shared_dim))
 shared_G = ResidualBlock(features=shared_dim)
 G1 = Generator(dim=opt.dim, out_channels=opt.channels, n_upsample=opt.n_downsample, shared_block=shared_G)
 G2 = Generator(dim=opt.dim, out_channels=opt.channels, n_upsample=opt.n_downsample, shared_block=shared_G)
@@ -121,7 +120,9 @@ dataloader = torch.utils.data.DataLoader(
 	DataProc(opt),
 	batch_size=opt.batch_size,
 	shuffle=True,
-	num_workers=opt.n_cpu)
+	num_workers=opt.n_cpu,
+    pin_memory=True
+)
 
 def compute_kl(mu):
     mu_2 = torch.pow(mu, 2)

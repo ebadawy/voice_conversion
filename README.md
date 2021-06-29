@@ -43,7 +43,7 @@ Examples of generated audios using flicker8k audio dataset https://ebadawy.githu
 - Rewrite `preprocess.py` to handle:
   - multi-process feature extraction
   - create train/test/val split
-  - display error messages for faild cases
+  - display error messages for failed cases
 - Create:
   - `inference.py`
   - `requirements.txt`
