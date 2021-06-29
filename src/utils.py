@@ -258,7 +258,7 @@ def plot_batch_train(modelname, direction, curr_epoch, SRC, recon_SRC, fake_TRGT
     
 def plot_mel_transfer_eval(save_path, mel_in, mel_recon, mel_out):
     """Visualises melspectrogram style transfer in testing, with target implictly learnt"""
-    fig, ax = plt.subplots(nrows=1, ncols=3, sharex=True, figsize=(6,3))
+    fig, ax = plt.subplots(nrows=1, ncols=3, sharex=True, figsize=(12,6))
     
     ax[0].imshow(np.rot90(mel_in, 2), interpolation="None")
     ax[0].set(title='Input')
