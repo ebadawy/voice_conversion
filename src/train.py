@@ -20,7 +20,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--epoch", type=int, default=0, help="epoch to start training from")
 parser.add_argument("--n_epochs", type=int, default=100, help="number of epochs of training")
 parser.add_argument("--model_name", type=str, help="name of the model")
-parser.add_argument("--dataset", type=str, help="path to dataset")
+parser.add_argument("--dataset", type=str, help="path to dataset for training")
 parser.add_argument("--n_spkrs", type=int, default=2, help="number of speakers for conversion")
 parser.add_argument("--batch_size", type=int, default=4, help="size of the batches")
 parser.add_argument("--lr", type=float, default=0.0001, help="adam: learning rate")
@@ -31,7 +31,7 @@ parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads 
 parser.add_argument("--img_height", type=int, default=128, help="size of image height")
 parser.add_argument("--img_width", type=int, default=128, help="size of image width")
 parser.add_argument("--channels", type=int, default=1, help="number of image channels")
-parser.add_argument("--sample_interval", type=int, default=100, help="interval between saving generator samples")
+parser.add_argument("--sample_interval", type=int, default=100, help="interval between saving generator sample visualisations")
 parser.add_argument("--checkpoint_interval", type=int, default=1, help="interval between saving model checkpoints")
 parser.add_argument("--n_downsample", type=int, default=2, help="number downsampling layers in encoder")
 parser.add_argument("--dim", type=int, default=32, help="number of filters in first encoder layer")
@@ -54,7 +54,7 @@ input_shape = (opt.channels, opt.img_height, opt.img_width)
 shared_dim = opt.dim * 2 ** opt.n_downsample
 
 # Initialize generator and discriminator
-encoder = Encoder(dim=opt.dim, in_channels=opt.channels, n_downsample=opt.n_downsample, final_block=ResidualBlock(features=shared_dim))
+encoder = Encoder(dim=opt.dim, in_channels=opt.channels, n_downsample=opt.n_downsample)
 shared_G = ResidualBlock(features=shared_dim)
 G1 = Generator(dim=opt.dim, out_channels=opt.channels, n_upsample=opt.n_downsample, shared_block=shared_G)
 G2 = Generator(dim=opt.dim, out_channels=opt.channels, n_upsample=opt.n_downsample, shared_block=shared_G)
@@ -148,7 +148,7 @@ for epoch in range(opt.epoch, opt.n_epochs):
         fake = Variable(Tensor(np.zeros((X1.size(0), *D1.output_shape))), requires_grad=False)
 
         # -------------------------------
-        #  Train Encoders and Generators
+        #  Train Encoder and Generators
         # -------------------------------
 
         optimizer_G.zero_grad()
