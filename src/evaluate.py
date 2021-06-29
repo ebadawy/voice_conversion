@@ -28,7 +28,7 @@ parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads 
 parser.add_argument("--img_height", type=int, default=128, help="size of image height")
 parser.add_argument("--img_width", type=int, default=128, help="size of image width")
 parser.add_argument("--channels", type=int, default=1, help="number of image channels")
-parser.add_argument("--sample_interval", type=int, default=100, help="interval between saving generator sample visualisations")
+parser.add_argument("--plot_interval", type=int, default=500, help="batch interval between saving generator sample visualisations")
 parser.add_argument("--n_downsample", type=int, default=2, help="number downsampling layers in encoder")
 parser.add_argument("--dim", type=int, default=32, help="number of filters in first encoder layer")
 
@@ -39,8 +39,8 @@ cuda = True if torch.cuda.is_available() else False
 
 # Create inference output directories for both transfer directions
 os.makedirs("out_eval/%s" % opt.model_name, exist_ok=True)
-os.makedirs("out_eval/%s/A2B/" % opt.model_name, exist_ok=True)
-os.makedirs("out_eval/%s/B2A/" % opt.model_name, exist_ok=True)
+os.makedirs("out_eval/%s/plot_A2B/" % opt.model_name, exist_ok=True)
+os.makedirs("out_eval/%s/plot_B2A/" % opt.model_name, exist_ok=True)
 
 input_shape = (opt.channels, opt.img_height, opt.img_width)
 
@@ -48,7 +48,7 @@ input_shape = (opt.channels, opt.img_height, opt.img_width)
 shared_dim = opt.dim * 2 ** opt.n_downsample
 
 # Initialize generator and discriminator
-encoder = Encoder(dim=opt.dim, in_channels=opt.channels, n_downsample=opt.n_downsample, shared_block=ResidualBlock(features=shared_dim)) # TODO remove shared block
+encoder = Encoder(dim=opt.dim, in_channels=opt.channels, n_downsample=opt.n_downsample)
 shared_G = ResidualBlock(features=shared_dim)
 G1 = Generator(dim=opt.dim, out_channels=opt.channels, n_upsample=opt.n_downsample, shared_block=shared_G)
 G2 = Generator(dim=opt.dim, out_channels=opt.channels, n_upsample=opt.n_downsample, shared_block=shared_G)
@@ -118,8 +118,7 @@ for i, batch in progress:
     cycle_X1 = G1(Z2_)
     cycle_X2 = G2(Z1_)
         
-    # Plot batch 
-    plot_batch_eval(opt.model_name, 'A2B', i, X1, recon_X1, fake_X2)
-    plot_batch_eval(opt.model_name, 'B2A', i, X2, recon_X2, fake_X1)
-    
-    break
+    # Plot batch every couple batch intervals
+    if i % opt.plot_interval == 0:
+        plot_batch_eval(opt.model_name, 'plot_A2B', i, X1, recon_X1, fake_X2)
+        plot_batch_eval(opt.model_name, 'plot_B2A', i, X2, recon_X2, fake_X1)
