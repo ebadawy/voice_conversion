@@ -257,8 +257,8 @@ for epoch in range(opt.epoch, opt.n_epochs):
 
     if opt.checkpoint_interval != -1 and epoch % opt.checkpoint_interval == 0:
         # Save model checkpoints
-        torch.save(encoder.state_dict(), "saved_models/%s/encoder_%d.pth" % (opt.model_name, epoch))
-        torch.save(G1.state_dict(), "saved_models/%s/G1_%d.pth" % (opt.model_name, epoch))
-        torch.save(G2.state_dict(), "saved_models/%s/G2_%d.pth" % (opt.model_name, epoch))
-        torch.save(D1.state_dict(), "saved_models/%s/D1_%d.pth" % (opt.model_name, epoch))
-        torch.save(D2.state_dict(), "saved_models/%s/D2_%d.pth" % (opt.model_name, epoch))
+        torch.save(encoder.state_dict(), "saved_models/%s/encoder_%02d.pth" % (opt.model_name, epoch))
+        torch.save(G1.state_dict(), "saved_models/%s/G1_%02d.pth" % (opt.model_name, epoch))
+        torch.save(G2.state_dict(), "saved_models/%s/G2_%02d.pth" % (opt.model_name, epoch))
+        torch.save(D1.state_dict(), "saved_models/%s/D1_%02d.pth" % (opt.model_name, epoch))
+        torch.save(D2.state_dict(), "saved_models/%s/D2_%02d.pth" % (opt.model_name, epoch))
