@@ -115,4 +115,4 @@ for i, batch in progress:
     feats['B2A'].append([spect for spect in to_numpy(fake_X1)])
         
 # Save converted output in pickle format
-pickle.dump(feats,open('out_eval/%s/out.pickle'%(opt.model_name),'wb'))
+pickle.dump(feats,open('out_eval/%s/out_%s.pickle'%(opt.model_name, opt.epoch),'wb'))
