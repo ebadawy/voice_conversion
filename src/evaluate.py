@@ -28,7 +28,7 @@ parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads 
 parser.add_argument("--img_height", type=int, default=128, help="size of image height")
 parser.add_argument("--img_width", type=int, default=128, help="size of image width")
 parser.add_argument("--channels", type=int, default=1, help="number of image channels")
-parser.add_argument("--plot_interval", type=int, default=50, help="batch interval between saving generator sample visualisations")
+parser.add_argument("--plot_interval", type=int, default=100, help="batch interval between saving generator sample visualisations")
 parser.add_argument("--n_downsample", type=int, default=2, help="number downsampling layers in encoder")
 parser.add_argument("--dim", type=int, default=32, help="number of filters in first encoder layer")
 
@@ -107,8 +107,8 @@ for i, batch in progress:
         
     # Plot batch every couple batch intervals
     if i % opt.plot_interval == 0:
-        plot_batch_eval(opt.model_name, 'plot_A2B', i, X1, fake_X2)
-        plot_batch_eval(opt.model_name, 'plot_B2A', i, X2, fake_X1)
+        plot_batch_eval(opt.model_name, 'plot_A2B_%s'%opt.epoch, i, X1, fake_X2)
+        plot_batch_eval(opt.model_name, 'plot_B2A_%s'%opt.epoch, i, X2, fake_X1)
         
     # Append batch output to features dictionary
     feats['A2B'].append([spect for spect in to_numpy(fake_X2)])
