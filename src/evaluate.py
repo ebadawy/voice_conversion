@@ -101,24 +101,14 @@ for i, batch in progress:
     mu1, Z1 = encoder(X1)
     mu2, Z2 = encoder(X2)
 
-    # Reconstruct speech
-    recon_X1 = G1(Z1)
-    recon_X2 = G2(Z2)
-
     # Translate speech
     fake_X1 = G1(Z2)
     fake_X2 = G2(Z1)
-
-    # Cycle translation
-    mu1_, Z1_ = encoder(fake_X1)
-    mu2_, Z2_ = encoder(fake_X2)
-    cycle_X1 = G1(Z2_)
-    cycle_X2 = G2(Z1_)
         
     # Plot batch every couple batch intervals
     if i % opt.plot_interval == 0:
-        plot_batch_eval(opt.model_name, 'plot_A2B', i, X1, recon_X1, fake_X2)
-        plot_batch_eval(opt.model_name, 'plot_B2A', i, X2, recon_X2, fake_X1)
+        plot_batch_eval(opt.model_name, 'plot_A2B', i, X1, fake_X2)
+        plot_batch_eval(opt.model_name, 'plot_B2A', i, X2, fake_X1)
         
     # Append batch output to features dictionary
     feats['A2B'].append([spect for spect in to_numpy(fake_X2)])
