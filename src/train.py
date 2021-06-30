@@ -77,11 +77,11 @@ if cuda:
 
 if opt.epoch != 0:
     # Load pretrained models
-    encoder.load_state_dict(torch.load("saved_models/%s/encoder_e%02d.pth" % (opt.model_name, opt.epoch)))
-    G1.load_state_dict(torch.load("saved_models/%s/G1_e%02d.pth" % (opt.model_name, opt.epoch)))
-    G2.load_state_dict(torch.load("saved_models/%s/G2_e%02d.pth" % (opt.model_name, opt.epoch)))
-    D1.load_state_dict(torch.load("saved_models/%s/D1_e%02d.pth" % (opt.model_name, opt.epoch)))
-    D2.load_state_dict(torch.load("saved_models/%s/D2_e%02d.pth" % (opt.model_name, opt.epoch)))
+    encoder.load_state_dict(torch.load("saved_models/%s/encoder_%02d.pth" % (opt.model_name, opt.epoch)))
+    G1.load_state_dict(torch.load("saved_models/%s/G1_%02d.pth" % (opt.model_name, opt.epoch)))
+    G2.load_state_dict(torch.load("saved_models/%s/G2_%02d.pth" % (opt.model_name, opt.epoch)))
+    D1.load_state_dict(torch.load("saved_models/%s/D1_%02d.pth" % (opt.model_name, opt.epoch)))
+    D2.load_state_dict(torch.load("saved_models/%s/D2_%02d.pth" % (opt.model_name, opt.epoch)))
 else:
     # Initialize weights
     encoder.apply(weights_init_normal)
@@ -240,8 +240,7 @@ for epoch in range(opt.epoch, opt.n_epochs):
         losses['G'].append(loss_G.item())
         losses['D'].append((loss_D1 + loss_D2).item())
 
-        # update progress bar
-
+        # Update progress bar
         progress.set_description("[Epoch %d/%d] [D loss: %f] [G loss: %f] "
             % (epoch,opt.n_epochs,np.mean(losses['D']), np.mean(losses['G'])))
         
@@ -257,8 +256,8 @@ for epoch in range(opt.epoch, opt.n_epochs):
 
     if opt.checkpoint_interval != -1 and epoch % opt.checkpoint_interval == 0:
         # Save model checkpoints
-        torch.save(encoder.state_dict(), "saved_models/%s/encoder_e%02d.pth" % (opt.model_name, epoch))
-        torch.save(G1.state_dict(), "saved_models/%s/G1_e%02d.pth" % (opt.model_name, epoch))
-        torch.save(G2.state_dict(), "saved_models/%s/G2_e%02d.pth" % (opt.model_name, epoch))
-        torch.save(D1.state_dict(), "saved_models/%s/D1_e%02d.pth" % (opt.model_name, epoch))
-        torch.save(D2.state_dict(), "saved_models/%s/D2_e%02d.pth" % (opt.model_name, epoch))
+        torch.save(encoder.state_dict(), "saved_models/%s/encoder_%02d.pth" % (opt.model_name, epoch))
+        torch.save(G1.state_dict(), "saved_models/%s/G1_%02d.pth" % (opt.model_name, epoch))
+        torch.save(G2.state_dict(), "saved_models/%s/G2_%02d.pth" % (opt.model_name, epoch))
+        torch.save(D1.state_dict(), "saved_models/%s/D1_%02d.pth" % (opt.model_name, epoch))
+        torch.save(D2.state_dict(), "saved_models/%s/D2_%02d.pth" % (opt.model_name, epoch))

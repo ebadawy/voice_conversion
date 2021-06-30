@@ -14,7 +14,9 @@ from data_proc import DataProc
 import torch.nn as nn
 import torch
 
-from utils import plot_batch_eval
+from utils import plot_batch_eval, to_numpy
+from collections import defaultdict
+import pickle
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--epoch", type=int, default=0, help="saved version based on epoch to test from")
@@ -26,7 +28,7 @@ parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads 
 parser.add_argument("--img_height", type=int, default=128, help="size of image height")
 parser.add_argument("--img_width", type=int, default=128, help="size of image width")
 parser.add_argument("--channels", type=int, default=1, help="number of image channels")
-parser.add_argument("--plot_interval", type=int, default=500, help="batch interval between saving generator sample visualisations")
+parser.add_argument("--plot_interval", type=int, default=50, help="batch interval between saving generator sample visualisations")
 parser.add_argument("--n_downsample", type=int, default=2, help="number downsampling layers in encoder")
 parser.add_argument("--dim", type=int, default=32, help="number of filters in first encoder layer")
 
@@ -55,14 +57,14 @@ if cuda:
     G1 = G1.cuda()
     G2 = G2.cuda()
 
-assert os.path.exists("saved_models/%s/encoder_e%02d.pth" % (opt.model_name, opt.epoch))  # check that trained encoder exists
-assert os.path.exists("saved_models/%s/G1_e%02d.pth" % (opt.model_name, opt.epoch))  # check that trained G1 exists
-assert os.path.exists("saved_models/%s/G2_e%02d.pth" % (opt.model_name, opt.epoch))  # check that trained G2 exists
+assert os.path.exists("saved_models/%s/encoder_%02d.pth" % (opt.model_name, opt.epoch))  # check that trained encoder exists
+assert os.path.exists("saved_models/%s/G1_%02d.pth" % (opt.model_name, opt.epoch))  # check that trained G1 exists
+assert os.path.exists("saved_models/%s/G2_%02d.pth" % (opt.model_name, opt.epoch))  # check that trained G2 exists
     
 # Load pretrained models
-encoder.load_state_dict(torch.load("saved_models/%s/encoder_e%02d.pth" % (opt.model_name, opt.epoch)))
-G1.load_state_dict(torch.load("saved_models/%s/G1_e%02d.pth" % (opt.model_name, opt.epoch)))
-G2.load_state_dict(torch.load("saved_models/%s/G2_e%02d.pth" % (opt.model_name, opt.epoch)))
+encoder.load_state_dict(torch.load("saved_models/%s/encoder_%02d.pth" % (opt.model_name, opt.epoch)))
+G1.load_state_dict(torch.load("saved_models/%s/G1_%02d.pth" % (opt.model_name, opt.epoch)))
+G2.load_state_dict(torch.load("saved_models/%s/G2_%02d.pth" % (opt.model_name, opt.epoch)))
 
 # Set to eval mode 
 encoder.eval()
@@ -78,6 +80,7 @@ dataloader = torch.utils.data.DataLoader(
     pin_memory=True
 )
 
+feats = defaultdict(list)
 
 # ----------
 #  Testing
@@ -117,4 +120,9 @@ for i, batch in progress:
         plot_batch_eval(opt.model_name, 'plot_A2B', i, X1, recon_X1, fake_X2)
         plot_batch_eval(opt.model_name, 'plot_B2A', i, X2, recon_X2, fake_X1)
         
-# TODO: save output in pickle format
+    # Append batch output to features dictionary
+    feats['A2B'].append([spect for spect in to_numpy(fake_X2)])
+    feats['B2A'].append([spect for spect in to_numpy(fake_X1)])
+        
+# Save converted output in pickle format
+pickle.dump(feats,open('out_eval/%s/out.pickle'%(opt.model_name),'wb'))
