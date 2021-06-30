@@ -248,7 +248,6 @@ def plot_mel_transfer_train(save_path, curr_epoch, mel_in, mel_cyclic, mel_out, 
     plt.close()
     
 def plot_batch_train(modelname, direction, curr_epoch, SRC, cyclic_SRC, fake_TRGT, real_TRGT):
-    """Plots all melspectrogram results in a batch with real_TRGT included"""
     SRC, cyclic_SRC, fake_TRGT, real_TRGT = to_numpy(SRC), to_numpy(cyclic_SRC), to_numpy(fake_TRGT), to_numpy(real_TRGT)
     i = 1
     for src, cyclic_src, fake_target, real_target in zip(SRC, cyclic_SRC, fake_TRGT, real_TRGT):
@@ -257,7 +256,7 @@ def plot_batch_train(modelname, direction, curr_epoch, SRC, cyclic_SRC, fake_TRG
         i += 1
     
 def plot_mel_transfer_eval(save_path, mel_in, mel_out):
-    """Visualises melspectrogram style transfer in testing, with target implictly learnt"""
+    """Visualises melspectrogram style transfer in testing, only shows input and output"""
     fig, ax = plt.subplots(nrows=1, ncols=2, sharex=True, figsize=(5,3))
     
     ax[0].imshow(np.rot90(mel_in, 2), interpolation="None")
@@ -276,7 +275,6 @@ def plot_mel_transfer_eval(save_path, mel_in, mel_out):
    
     
 def plot_batch_eval(modelname, direction, batchno, SRC, fake_TRGT):
-    """Plots all melspectrogram results in a batch with real_TRGT excluded"""
     SRC, fake_TRGT = to_numpy(SRC), to_numpy(fake_TRGT)
     i = 1
     for src, fake_target in zip(SRC, fake_TRGT):
@@ -284,3 +282,18 @@ def plot_batch_eval(modelname, direction, batchno, SRC, fake_TRGT):
         plot_mel_transfer_eval(fname, src, fake_target)
         i += 1
         
+        
+def wav_batch_eval(modelname, direction, batchno, SRC, fake_TRGT):
+    SRC, fake_TRGT = to_numpy(SRC), to_numpy(fake_TRGT)
+    i = 1
+    for src, fake_target in zip(SRC, fake_TRGT):
+        name = "out_eval/%s/%s/%s_%04d_%s"%(modelname, direction, direction, batchno, i)
+        
+        ref = reconstruct_waveform(src)
+        ref_fname = name + '_ref.wav'
+        sf.write(ref_fname, ref, sample_rate)
+        
+        out = reconstruct_waveform(fake_target)
+        out_fname = name + '_out.wav'
+        sf.write(out_fname, out, sample_rate)
+        i += 1
