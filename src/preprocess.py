@@ -14,6 +14,8 @@ feats = defaultdict(list)
 opt = parser.parse_args()
 print(opt)
 
+assert opt == 2, 'Currently only two speakers are supported'
+
 for spkr in range(opt.n_spkrs):
     wavs = ls('%s/spkr_%s | grep .wav'%(opt.dataset, spkr+1))
     for i, wav in tqdm(enumerate(wavs), total=len(wavs), desc="spkr_%d"%(spkr+1)):
