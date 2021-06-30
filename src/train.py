@@ -246,8 +246,8 @@ for epoch in range(opt.epoch, opt.n_epochs):
         
         # Plot first batch every epoch or few epochs
         if epoch % opt.plot_interval == 0 and i == 0:
-            plot_batch_train(opt.model_name, 'plot_A2B', epoch, X1, recon_X1, fake_X2, X2)
-            plot_batch_train(opt.model_name, 'plot_B2A', epoch, X2, recon_X2, fake_X1, X1)
+            plot_batch_train(opt.model_name, 'plot_A2B', epoch, X1, cycle_X1, fake_X2, X2)
+            plot_batch_train(opt.model_name, 'plot_B2A', epoch, X2, cycle_X2, fake_X1, X1)
 
     # Update learning rates
     lr_scheduler_G.step()
