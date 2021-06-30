@@ -77,11 +77,11 @@ if cuda:
 
 if opt.epoch != 0:
     # Load pretrained models
-    encoder.load_state_dict(torch.load("saved_models/%s/encoder_%d.pth" % (opt.model_name, opt.epoch)))
-    G1.load_state_dict(torch.load("saved_models/%s/G1_%d.pth" % (opt.model_name, opt.epoch)))
-    G2.load_state_dict(torch.load("saved_models/%s/G2_%d.pth" % (opt.model_name, opt.epoch)))
-    D1.load_state_dict(torch.load("saved_models/%s/D1_%d.pth" % (opt.model_name, opt.epoch)))
-    D2.load_state_dict(torch.load("saved_models/%s/D2_%d.pth" % (opt.model_name, opt.epoch)))
+    encoder.load_state_dict(torch.load("saved_models/%s/encoder_%02d.pth" % (opt.model_name, opt.epoch)))
+    G1.load_state_dict(torch.load("saved_models/%s/G1_%02d.pth" % (opt.model_name, opt.epoch)))
+    G2.load_state_dict(torch.load("saved_models/%s/G2_%02d.pth" % (opt.model_name, opt.epoch)))
+    D1.load_state_dict(torch.load("saved_models/%s/D1_%02d.pth" % (opt.model_name, opt.epoch)))
+    D2.load_state_dict(torch.load("saved_models/%s/D2_%02d.pth" % (opt.model_name, opt.epoch)))
 else:
     # Initialize weights
     encoder.apply(weights_init_normal)
@@ -240,12 +240,11 @@ for epoch in range(opt.epoch, opt.n_epochs):
         losses['G'].append(loss_G.item())
         losses['D'].append((loss_D1 + loss_D2).item())
 
-        # update progress bar
-
+        # Update progress bar
         progress.set_description("[Epoch %d/%d] [D loss: %f] [G loss: %f] "
             % (epoch,opt.n_epochs,np.mean(losses['D']), np.mean(losses['G'])))
         
-        # Plot transfer images of the first batch every epoch or few epochs
+        # Plot first batch every epoch or few epochs
         if epoch % opt.plot_interval == 0 and i == 0:
             plot_batch_train(opt.model_name, 'plot_A2B', epoch, X1, recon_X1, fake_X2, X2)
             plot_batch_train(opt.model_name, 'plot_B2A', epoch, X2, recon_X2, fake_X1, X1)
@@ -257,8 +256,8 @@ for epoch in range(opt.epoch, opt.n_epochs):
 
     if opt.checkpoint_interval != -1 and epoch % opt.checkpoint_interval == 0:
         # Save model checkpoints
-        torch.save(encoder.state_dict(), "saved_models/%s/encoder_%d.pth" % (opt.model_name, epoch))
-        torch.save(G1.state_dict(), "saved_models/%s/G1_%d.pth" % (opt.model_name, epoch))
-        torch.save(G2.state_dict(), "saved_models/%s/G2_%d.pth" % (opt.model_name, epoch))
-        torch.save(D1.state_dict(), "saved_models/%s/D1_%d.pth" % (opt.model_name, epoch))
-        torch.save(D2.state_dict(), "saved_models/%s/D2_%d.pth" % (opt.model_name, epoch))
+        torch.save(encoder.state_dict(), "saved_models/%s/encoder_%02d.pth" % (opt.model_name, epoch))
+        torch.save(G1.state_dict(), "saved_models/%s/G1_%02d.pth" % (opt.model_name, epoch))
+        torch.save(G2.state_dict(), "saved_models/%s/G2_%02d.pth" % (opt.model_name, epoch))
+        torch.save(D1.state_dict(), "saved_models/%s/D1_%02d.pth" % (opt.model_name, epoch))
+        torch.save(D2.state_dict(), "saved_models/%s/D2_%02d.pth" % (opt.model_name, epoch))
