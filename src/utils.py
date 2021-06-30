@@ -252,13 +252,13 @@ def plot_batch_train(modelname, direction, curr_epoch, SRC, recon_SRC, fake_TRGT
     SRC, recon_SRC, fake_TRGT, real_TRGT = to_numpy(SRC), to_numpy(recon_SRC), to_numpy(fake_TRGT), to_numpy(real_TRGT)
     i = 1
     for src, recon_src, fake_target, real_target in zip(SRC, recon_SRC, fake_TRGT, real_TRGT):
-        fname = "out_train/%s/%s/%s_%02d_%s.png"%(modelname, direction, direction, curr_epoch, i)
+        fname = "out_train/%s/%s/%s_%03d_%s.png"%(modelname, direction, direction, curr_epoch, i)
         plot_mel_transfer_train(fname, curr_epoch, src, recon_src, fake_target, real_target)
         i += 1
     
 def plot_mel_transfer_eval(save_path, mel_in, mel_recon, mel_out):
     """Visualises melspectrogram style transfer in testing, with target implictly learnt"""
-    fig, ax = plt.subplots(nrows=1, ncols=3, sharex=True, figsize=(12,6))
+    fig, ax = plt.subplots(nrows=1, ncols=3, sharex=True, figsize=(6,3))
     
     ax[0].imshow(np.rot90(mel_in, 2), interpolation="None")
     ax[0].set(title='Input')
@@ -282,7 +282,7 @@ def plot_batch_eval(modelname, direction, batchno, SRC, recon_SRC, fake_TRGT):
     SRC, recon_SRC, fake_TRGT = to_numpy(SRC), to_numpy(recon_SRC), to_numpy(fake_TRGT)
     i = 1
     for src, recon_src, fake_target in zip(SRC, recon_SRC, fake_TRGT):
-        fname = "out_eval/%s/%s/%s_%s_%s.png"%(modelname, direction, direction, batchno, i)
+        fname = "out_eval/%s/%s/%s_%04d_%s.png"%(modelname, direction, direction, batchno, i)
         plot_mel_transfer_eval(fname, src, recon_src, fake_target)
         i += 1
         
