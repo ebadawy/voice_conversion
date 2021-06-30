@@ -253,12 +253,12 @@ def plot_batch_train(modelname, direction, curr_epoch, SRC, cyclic_SRC, fake_TRG
     i = 1
     for src, cyclic_src, fake_target, real_target in zip(SRC, cyclic_SRC, fake_TRGT, real_TRGT):
         fname = "out_train/%s/%s/%s_%03d_%s.png"%(modelname, direction, direction, curr_epoch, i)
-        plot_mel_transfer_train(fname, curr_epoch, src, recon_src, fake_target, real_target)
+        plot_mel_transfer_train(fname, curr_epoch, src, cyclic_src, fake_target, real_target)
         i += 1
     
 def plot_mel_transfer_eval(save_path, mel_in, mel_out):
     """Visualises melspectrogram style transfer in testing, with target implictly learnt"""
-    fig, ax = plt.subplots(nrows=1, ncols=2, sharex=True, figsize=(6,3))
+    fig, ax = plt.subplots(nrows=1, ncols=2, sharex=True, figsize=(5,3))
     
     ax[0].imshow(np.rot90(mel_in, 2), interpolation="None")
     ax[0].set(title='Input')
@@ -270,13 +270,14 @@ def plot_mel_transfer_eval(save_path, mel_in, mel_out):
     ax[1].set_xlabel('Frames')
     ax[1].axes.yaxis.set_ticks([])
 
+    plt.tight_layout()
     plt.savefig(save_path)
     plt.close()
    
     
 def plot_batch_eval(modelname, direction, batchno, SRC, fake_TRGT):
     """Plots all melspectrogram results in a batch with real_TRGT excluded"""
-    SRC, recon_SRC, fake_TRGT = to_numpy(SRC), to_numpy(recon_SRC), to_numpy(fake_TRGT)
+    SRC, fake_TRGT = to_numpy(SRC), to_numpy(fake_TRGT)
     i = 1
     for src, fake_target in zip(SRC, fake_TRGT):
         fname = "out_eval/%s/%s/%s_%04d_%s.png"%(modelname, direction, direction, batchno, i)
