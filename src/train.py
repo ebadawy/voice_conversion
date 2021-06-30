@@ -32,7 +32,7 @@ parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads 
 parser.add_argument("--img_height", type=int, default=128, help="size of image height")
 parser.add_argument("--img_width", type=int, default=128, help="size of image width")
 parser.add_argument("--channels", type=int, default=1, help="number of image channels")
-parser.add_argument("--plot_interval", type=int, default=1, help="epoch interval between saving generator sample visualisations")
+parser.add_argument("--plot_interval", type=int, default=1, help="epoch interval between saving plots (disable with -1)")
 parser.add_argument("--checkpoint_interval", type=int, default=1, help="interval between saving model checkpoints")
 parser.add_argument("--n_downsample", type=int, default=2, help="number downsampling layers in encoder")
 parser.add_argument("--dim", type=int, default=32, help="number of filters in first encoder layer")
@@ -46,8 +46,9 @@ cuda = True if torch.cuda.is_available() else False
 os.makedirs("saved_models/%s" % opt.model_name, exist_ok=True)
 
 # Create plot output directories
-os.makedirs("out_train/%s/plot_A2B/" % opt.model_name, exist_ok=True)
-os.makedirs("out_train/%s/plot_B2A/" % opt.model_name, exist_ok=True)
+if opt.plot_interval != -1:
+    os.makedirs("out_train/%s/plot_A2B/" % opt.model_name, exist_ok=True)
+    os.makedirs("out_train/%s/plot_B2A/" % opt.model_name, exist_ok=True)
 
 # Losses
 criterion_GAN = torch.nn.MSELoss()
@@ -245,7 +246,7 @@ for epoch in range(opt.epoch, opt.n_epochs):
             % (epoch,opt.n_epochs,np.mean(losses['D']), np.mean(losses['G'])))
         
         # Plot first batch every epoch or few epochs
-        if epoch % opt.plot_interval == 0 and i == 0:
+        if opt.plot_interval != -1 and epoch % opt.plot_interval == 0 and i == 0:
             plot_batch_train(opt.model_name, 'plot_A2B', epoch, X1, cycle_X1, fake_X2, X2)
             plot_batch_train(opt.model_name, 'plot_B2A', epoch, X2, cycle_X2, fake_X1, X1)
 
