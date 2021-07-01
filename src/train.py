@@ -22,6 +22,7 @@ parser.add_argument("--epoch", type=int, default=0, help="epoch to start trainin
 parser.add_argument("--n_epochs", type=int, default=100, help="number of epochs of training")
 parser.add_argument("--model_name", type=str, help="name of the model")
 parser.add_argument("--dataset", type=str, help="path to dataset for training")
+parser.add_argument("--split", type=str, default='train', help="split set to load data from")
 parser.add_argument("--n_spkrs", type=int, default=2, help="number of speakers for conversion")
 parser.add_argument("--batch_size", type=int, default=4, help="size of the batches")
 parser.add_argument("--lr", type=float, default=0.0001, help="adam: learning rate")
