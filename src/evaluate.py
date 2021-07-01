@@ -14,7 +14,7 @@ from data_proc import DataProc
 import torch.nn as nn
 import torch
 
-from utils import plot_batch_eval, to_numpy
+from utils import plot_batch_eval, wav_batch_eval, to_numpy
 from collections import defaultdict
 import pickle
 
@@ -28,7 +28,8 @@ parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads 
 parser.add_argument("--img_height", type=int, default=128, help="size of image height")
 parser.add_argument("--img_width", type=int, default=128, help="size of image width")
 parser.add_argument("--channels", type=int, default=1, help="number of image channels")
-parser.add_argument("--plot_interval", type=int, default=50, help="batch interval between saving generator sample visualisations")
+parser.add_argument("--plot_interval", type=int, default=100, help="batch interval between plots (set to -1 to disable)")
+parser.add_argument("--wav_interval", type=int, default=200, help="batch interval between wav vocoded from Griffin Lim (set to -1 to disable)")
 parser.add_argument("--n_downsample", type=int, default=2, help="number downsampling layers in encoder")
 parser.add_argument("--dim", type=int, default=32, help="number of filters in first encoder layer")
 
@@ -38,8 +39,12 @@ print(opt)
 cuda = True if torch.cuda.is_available() else False
 
 # Create inference output directories for both transfer directions
-os.makedirs("out_eval/%s/plot_A2B/" % opt.model_name, exist_ok=True)
-os.makedirs("out_eval/%s/plot_B2A/" % opt.model_name, exist_ok=True)
+if opt.plot_interval != -1:
+    os.makedirs("out_eval/%s/plot_A2B_%s/" % (opt.model_name, opt.epoch), exist_ok=True)
+    os.makedirs("out_eval/%s/plot_B2A_%s/" % (opt.model_name, opt.epoch), exist_ok=True)
+if opt.wav_interval != -1:
+    os.makedirs("out_eval/%s/wav_A2B_%s/" % (opt.model_name, opt.epoch), exist_ok=True)
+    os.makedirs("out_eval/%s/wav_B2A_%s/" % (opt.model_name, opt.epoch), exist_ok=True)
 
 input_shape = (opt.channels, opt.img_height, opt.img_width)
 
@@ -101,28 +106,23 @@ for i, batch in progress:
     mu1, Z1 = encoder(X1)
     mu2, Z2 = encoder(X2)
 
-    # Reconstruct speech
-    recon_X1 = G1(Z1)
-    recon_X2 = G2(Z2)
-
     # Translate speech
     fake_X1 = G1(Z2)
     fake_X2 = G2(Z1)
-
-    # Cycle translation
-    mu1_, Z1_ = encoder(fake_X1)
-    mu2_, Z2_ = encoder(fake_X2)
-    cycle_X1 = G1(Z2_)
-    cycle_X2 = G2(Z1_)
         
     # Plot batch every couple batch intervals
-    if i % opt.plot_interval == 0:
-        plot_batch_eval(opt.model_name, 'plot_A2B', i, X1, recon_X1, fake_X2)
-        plot_batch_eval(opt.model_name, 'plot_B2A', i, X2, recon_X2, fake_X1)
+    if opt.plot_interval != -1 and i % opt.plot_interval == 0:
+        plot_batch_eval(opt.model_name, 'plot_A2B_%02d'%opt.epoch, i, X1, fake_X2)
+        plot_batch_eval(opt.model_name, 'plot_B2A_%02d'%opt.epoch, i, X2, fake_X1)
+        
+    # Vocode batch every couple batch intervals    
+    if opt.wav_interval != -1 and i % opt.wav_interval == 0:
+        wav_batch_eval(opt.model_name, 'wav_A2B_%02d'%opt.epoch, i, X1, fake_X2)
+        wav_batch_eval(opt.model_name, 'wav_B2A_%02d'%opt.epoch, i, X2, fake_X1)
         
     # Append batch output to features dictionary
     feats['A2B'].append([spect for spect in to_numpy(fake_X2)])
     feats['B2A'].append([spect for spect in to_numpy(fake_X1)])
         
 # Save converted output in pickle format
-pickle.dump(feats,open('out_eval/%s/out.pickle'%(opt.model_name),'wb'))
+pickle.dump(feats,open('out_eval/%s/out_%s.pickle'%(opt.model_name, opt.epoch),'wb'))
