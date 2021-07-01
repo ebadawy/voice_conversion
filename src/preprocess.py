@@ -15,7 +15,7 @@ parser.add_argument("--n_spkrs", type=int, default=2, help="number of speakers f
 opt = parser.parse_args()
 print(opt)
 
-assert opt != 2, 'Currently only two speakers are supported'
+assert opt.n_spkrs == 2, 'Currently only two speakers are supported'
 not_train_size = opt.test_size + opt.eval_size
 
 # Stores preprocessed spectrograms
@@ -32,7 +32,7 @@ test_refs = {}
 def get_spect(wav):
     sample = preprocess_wav('%s/spkr_%s/%s'%(opt.dataset, spkr+1, wav))
     return melspectrogram(sample)
-
+  
 
 for spkr in range(opt.n_spkrs):
     wavs = ls('%s/spkr_%s | grep .wav'%(opt.dataset, spkr+1))
