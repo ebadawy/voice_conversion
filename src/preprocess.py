@@ -14,7 +14,7 @@ feats = defaultdict(list)
 opt = parser.parse_args()
 print(opt)
 
-assert opt != 2, 'Currently only two speakers are supported'
+assert opt.n_spkrs == 2, 'Currently only two speakers are supported'
 
 for spkr in range(opt.n_spkrs):
     wavs = ls('%s/spkr_%s | grep .wav'%(opt.dataset, spkr+1))
