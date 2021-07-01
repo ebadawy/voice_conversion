@@ -21,7 +21,7 @@ import pickle
 parser = argparse.ArgumentParser()
 parser.add_argument("--epoch", type=int, default=0, help="saved version based on epoch to test from")
 parser.add_argument("--model_name", type=str, help="name of the model")
-parser.add_argument("--dataset", type=str, help="path to dataset for testing")
+parser.add_argument("--dataset", type=str, help="path to dataset file for testing")
 parser.add_argument("--n_spkrs", type=int, default=2, help="number of speakers for conversion")
 parser.add_argument("--batch_size", type=int, default=4, help="size of the batches")
 parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads to use during batch generation")

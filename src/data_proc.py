@@ -9,7 +9,7 @@ class DataProc(torch.utils.data.Dataset):
 
     def __init__(self, args):
         self.args = args
-        self.data_dict = pickle.load(open('%s/data.pickle'%(args.dataset),'rb'))
+        self.data_dict = pickle.load(open('%s.pickle'%(args.dataset),'rb'))
 
     def __len__(self):
         total_len = 0
