@@ -7,9 +7,9 @@ from params import num_samples
 
 class DataProc(torch.utils.data.Dataset):
 
-    def __init__(self, args):
+    def __init__(self, args, split):
         self.args = args
-        self.data_dict = pickle.load(open('%s/data_%s.pickle'%(args.dataset, args.split),'rb'))
+        self.data_dict = pickle.load(open('%s/data_%s.pickle'%(args.dataset, split),'rb'))
 
     def __len__(self):
         total_len = 0

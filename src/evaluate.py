@@ -22,7 +22,6 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--epoch", type=int, default=0, help="saved version based on epoch to test from")
 parser.add_argument("--model_name", type=str, help="name of the model")
 parser.add_argument("--dataset", type=str, help="path to dataset for testing")
-parser.add_argument("--split", type=str, default='eval', help="split set to load data from")
 parser.add_argument("--n_spkrs", type=int, default=2, help="number of speakers for conversion")
 parser.add_argument("--batch_size", type=int, default=4, help="size of the batches")
 parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads to use during batch generation")
@@ -79,7 +78,7 @@ G2.eval()
 
 Tensor = torch.cuda.FloatTensor if cuda else torch.Tensor
 dataloader = torch.utils.data.DataLoader(
-	DataProc(opt),
+	DataProc(opt, split='eval'),
 	batch_size=opt.batch_size,
 	shuffle=True,
 	num_workers=opt.n_cpu,
