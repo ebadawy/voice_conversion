@@ -78,7 +78,7 @@ G2.eval()
 
 Tensor = torch.cuda.FloatTensor if cuda else torch.Tensor
 dataloader = torch.utils.data.DataLoader(
-	DataProc(opt),
+	DataProc(opt, split='eval'),
 	batch_size=opt.batch_size,
 	shuffle=True,
 	num_workers=opt.n_cpu,

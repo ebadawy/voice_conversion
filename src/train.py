@@ -123,7 +123,7 @@ Tensor = torch.cuda.FloatTensor if cuda else torch.Tensor
 
 # Prepare dataloader
 dataloader = torch.utils.data.DataLoader(
-	DataProc(opt),
+	DataProc(opt, split='train'),
 	batch_size=opt.batch_size,
 	shuffle=True,
 	num_workers=opt.n_cpu,
