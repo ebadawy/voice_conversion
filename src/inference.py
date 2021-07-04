@@ -17,6 +17,7 @@ from utils import ls, preprocess_wav, melspectrogram, to_numpy
 parser = argparse.ArgumentParser()
 parser.add_argument("--epoch", type=int, default=0, help="saved version based on epoch to test from")
 parser.add_argument("--model_name", type=str, help="name of the model")
+parser.add_argument("--gen_id", type=str, help="id of the generator for the target domain")
 parser.add_argument("--wav", type=str, help="path to wav file for input to transfer")
 parser.add_argument("--outdir", type=str, default='out_infer', help="path to output directory for the conversion")
 parser.add_argument("--n_overlap", type=int, default=4, help="number of overlaps per slice")
@@ -29,52 +30,57 @@ parser.add_argument("--dim", type=int, default=32, help="number of filters in fi
 opt = parser.parse_args()
 print(opt)
 
-# os.makedirs(opt.outdir, exist_ok=True)
+os.makedirs(opt.outdir, exist_ok=True)
 
-# cuda = True if torch.cuda.is_available() else False
-# Tensor = torch.cuda.FloatTensor if cuda else torch.Tensor
-# input_shape = (opt.channels, opt.img_height, opt.img_width)
+cuda = True if torch.cuda.is_available() else False
+Tensor = torch.cuda.FloatTensor if cuda else torch.Tensor
+input_shape = (opt.channels, opt.img_height, opt.img_width)
 
-# # Dimensionality (channel-wise) of image embedding
-# shared_dim = opt.dim * 2 ** opt.n_downsample
+# Dimensionality (channel-wise) of image embedding
+shared_dim = opt.dim * 2 ** opt.n_downsample
 
-# # Initialize generator and discriminator
-# encoder = Encoder(dim=opt.dim, in_channels=opt.channels, n_downsample=opt.n_downsample)
-# shared_G = ResidualBlock(features=shared_dim)
-# G1 = Generator(dim=opt.dim, out_channels=opt.channels, n_upsample=opt.n_downsample, shared_block=shared_G)
-# G2 = Generator(dim=opt.dim, out_channels=opt.channels, n_upsample=opt.n_downsample, shared_block=shared_G)
+# Initialize generator and discriminator
+encoder = Encoder(dim=opt.dim, in_channels=opt.channels, n_downsample=opt.n_downsample)
+G = Generator(dim=opt.dim, out_channels=opt.channels, n_upsample=opt.n_downsample, shared_block=ResidualBlock(features=shared_dim))
 
-# if cuda:
-#     encoder = encoder.cuda()
-#     G1 = G1.cuda()
-#     G2 = G2.cuda()
+if cuda:
+    encoder = encoder.cuda()
+    G = G1.cuda()
 
-# assert os.path.exists("saved_models/%s/encoder_%02d.pth" % (opt.model_name, opt.epoch))  # check that trained encoder exists
-# assert os.path.exists("saved_models/%s/G1_%02d.pth" % (opt.model_name, opt.epoch))  # check that trained G1 exists
-# assert os.path.exists("saved_models/%s/G2_%02d.pth" % (opt.model_name, opt.epoch))  # check that trained G2 exists
+assert os.path.exists("saved_models/%s/encoder_%02d.pth" % (opt.model_name, opt.epoch)), 'Check that trained encoder exists'
+assert os.path.exists("saved_models/%s/G%s_%02d.pth" % (opt.model_name, opt.gen_id, opt.epoch)), 'Check that trained generator exists'
     
-# # Load pretrained models
-# encoder.load_state_dict(torch.load("saved_models/%s/encoder_%02d.pth" % (opt.model_name, opt.epoch)))
-# G1.load_state_dict(torch.load("saved_models/%s/G1_%02d.pth" % (opt.model_name, opt.epoch)))
-# G2.load_state_dict(torch.load("saved_models/%s/G2_%02d.pth" % (opt.model_name, opt.epoch)))
+# Load pretrained models
+encoder.load_state_dict(torch.load("saved_models/%s/encoder_%02d.pth" % (opt.model_name, opt.epoch)))
+G.load_state_dict(torch.load("saved_models/%s/G%s_%02d.pth" % (opt.model_name, opt.gen_id, opt.epoch)))
 
-# # Set to eval mode 
-# encoder.eval()
-# G1.eval()
-# G2.eval()
+# Set to eval mode 
+encoder.eval()
+G.eval()
 
-# Prepare input wav for inference
+# Load audio and preprocess
 sample = preprocess_wav(opt.wav)
 spect_src = melspectrogram(sample)
-spect_src = np.pad(spect_src, ((0,0),(opt.img_width,opt.img_width)), 'constant')  # padding for consistent overlap
 
+# --------------------
+#  Local Inference
+# --------------------
+
+def infer(S):
+    """Takes in a standard sized spectrogram, returns converted version"""
+    X = Variable(S.type(Tensor))
+    mu, Z = encoder(X)  # Get shared latent representation
+    fake_X = G(Z)  # Translate speech
+    retrun to_numpy(fake_X)
+
+# ------------------------------------------
+#  Global Inference (w/ a sliding window)
+# ------------------------------------------
+
+spect_src = np.pad(spect_src, ((0,0),(opt.img_width,opt.img_width)), 'constant')  # padding for consistent overlap
 length = spect_src.shape[1]
 spect_trg = np.zeros(spect_src.shape)
 hop = opt.img_width // opt.n_overlap
-
-# ------------------------------------
-#  Infering (w/ a sliding window)
-# ------------------------------------
 
 for i in range(0, length, hop):
     x = i + opt.img_width
@@ -87,8 +93,7 @@ for i in range(0, length, hop):
         S = np.pad(S, ((0,0),(x-length,0)), 'constant') 
         
     # Perform inference from trained model
-    # TODO
-    T = S
+    T = infer(S)
     
     # Add parts of target spectrogram with an average across overlapping segments    
     for j in range(0, opt.img_width, hop):
@@ -104,35 +109,7 @@ spect_trg = spect_trg[:, opt.img_width:-opt.img_width]
 # progress = tqdm(enumerate(dataloader),desc='',total=len(dataloader))
 # for i, batch in progress:
 
-#     # Set model input
-#     X1 = Variable(batch["A"].type(Tensor))
-#     X2 = Variable(batch["B"].type(Tensor))
 
-#     # -------------------------------
-#     #  Infer with Encoder and Generators
-#     # -------------------------------
-
-#     # Get shared latent representation
-#     mu1, Z1 = encoder(X1)
-#     mu2, Z2 = encoder(X2)
-
-#     # Translate speech
-#     fake_X1 = G1(Z2)
-#     fake_X2 = G2(Z1)
-        
-#     # Plot batch every couple batch intervals
-#     if opt.plot_interval != -1 and i % opt.plot_interval == 0:
-#         plot_batch_eval(opt.model_name, 'plot_A2B_%02d'%opt.epoch, i, X1, fake_X2)
-#         plot_batch_eval(opt.model_name, 'plot_B2A_%02d'%opt.epoch, i, X2, fake_X1)
-        
-#     # Vocode batch every couple batch intervals    
-#     if opt.wav_interval != -1 and i % opt.wav_interval == 0:
-#         wav_batch_eval(opt.model_name, 'wav_A2B_%02d'%opt.epoch, i, X1, fake_X2)
-#         wav_batch_eval(opt.model_name, 'wav_B2A_%02d'%opt.epoch, i, X2, fake_X1)
-        
-#     # Append batch output to features dictionary
-#     feats['A2B'].append([spect for spect in to_numpy(fake_X2)])
-#     feats['B2A'].append([spect for spect in to_numpy(fake_X1)])
         
 # # Save converted output in pickle format
 # pickle.dump(feats,open('out_eval/%s/out_%s.pickle'%(opt.model_name, opt.epoch),'wb'))
