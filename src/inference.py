@@ -29,18 +29,6 @@ parser.add_argument("--dim", type=int, default=32, help="number of filters in fi
 opt = parser.parse_args()
 print(opt)
 
-# to delete
-import matplotlib.pyplot as plt
-def plot(f, mel):
-    plt.figure()
-    plt.imshow(np.rot90(mel, 2), interpolation="None")
-    plt.ylabel('Mels')
-    plt.ylabel('Frames')
-    plt.title('Melspectrogram')
-    plt.tight_layout()
-    plt.savefig(f)
-    plt.close()
-
 # os.makedirs(opt.outdir, exist_ok=True)
 
 # cuda = True if torch.cuda.is_available() else False
@@ -78,7 +66,7 @@ def plot(f, mel):
 # Prepare input wav for inference
 sample = preprocess_wav(opt.wav)
 spect_src = melspectrogram(sample)
-spect_src = np.pad(spect_src, ((0,0),(opt.img_width,opt.img_width)), 'constant')  # pad left to start a bit before
+spect_src = np.pad(spect_src, ((0,0),(opt.img_width,opt.img_width)), 'constant')  # padding for consistent overlap
 
 length = spect_src.shape[1]
 spect_trg = np.zeros(spect_src.shape)
@@ -110,16 +98,8 @@ for i in range(0, length, hop):
         spect_trg[:, i+j:i+y] += t/opt.n_overlap  # add average element
 
 # Removing initial left pad
-spect_src = spect_src[:, opt.img_width:-opt.img_width]
 spect_trg = spect_trg[:, opt.img_width:-opt.img_width]
 
-print(spect_src.shape)
-print(spect_trg.shape)
-plot('src_after.png', spect_src)    
-plot('trg_after.png', spect_trg) 
-    
-comparison = spect_src == spect_trg
-print(comparison.all())
 
 # progress = tqdm(enumerate(dataloader),desc='',total=len(dataloader))
 # for i, batch in progress:
