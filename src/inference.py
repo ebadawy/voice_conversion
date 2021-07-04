@@ -125,4 +125,4 @@ print('Reconstructing with Griffin Lim...')
 x = reconstruct_waveform(spect_trg)
 
 sf.write('out_infer/%s_gen.wav'%fname, x, sample_rate)  # generated output
-sf.write('out_infer/%s_ref.wav'%fname, sample, sample_rate)  # input reference (for convinience)
+sf.write('out_infer/%s_ref.wav'%fname, sample, sample_rate)  # input reference (for convenience)
