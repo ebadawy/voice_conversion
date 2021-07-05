@@ -62,9 +62,9 @@ if cuda:
     G1 = G1.cuda()
     G2 = G2.cuda()
 
-assert os.path.exists("saved_models/%s/encoder_%02d.pth" % (opt.model_name, opt.epoch))  # check that trained encoder exists
-assert os.path.exists("saved_models/%s/G1_%02d.pth" % (opt.model_name, opt.epoch))  # check that trained G1 exists
-assert os.path.exists("saved_models/%s/G2_%02d.pth" % (opt.model_name, opt.epoch))  # check that trained G2 exists
+assert os.path.exists("saved_models/%s/encoder_%02d.pth" % (opt.model_name, opt.epoch)), 'Check that trained encoder exists'
+assert os.path.exists("saved_models/%s/G1_%02d.pth" % (opt.model_name, opt.epoch)), 'Check that trained G1 exists'
+assert os.path.exists("saved_models/%s/G2_%02d.pth" % (opt.model_name, opt.epoch)), 'Check that trained G2 exists'
     
 # Load pretrained models
 encoder.load_state_dict(torch.load("saved_models/%s/encoder_%02d.pth" % (opt.model_name, opt.epoch)))
