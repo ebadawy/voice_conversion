@@ -309,18 +309,19 @@ def plot_mel_transfer_infer(save_path, mel_in, mel_out):
     """Visualises melspectrogram style transfer in inference, shows total input and output"""
     fig, ax = plt.subplots(nrows=2, ncols=1, sharey=True)
 
-    ax[0].imshow(mel_in, interpolation="None")
+    ax[0].imshow(mel_in, interpolation="None", aspect='auto')
     ax[0].set(title='Input')
     ax[0].set_ylabel('Mels')
     ax[0].axes.xaxis.set_ticks([])
 
-    ax[1].imshow(mel_out, interpolation="None")
+    ax[1].imshow(mel_out, interpolation="None", aspect='auto')
     ax[1].set(title='Output')
     ax[1].set_ylabel('Mels')
     ax[1].set_xlabel('Frames')
     
     ax[0].invert_yaxis()
-    
     plt.tight_layout()
     plt.savefig(save_path)
     plt.close()
+    
+    
