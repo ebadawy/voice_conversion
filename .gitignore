@@ -4,3 +4,4 @@ src/saved_models
 src/out_train
 src/out_infer
 src/out_eval
+data

@@ -121,7 +121,7 @@ if opt.plot != -1:
     plot_mel_transfer_infer('out_infer/plots/%s.png' % fname, spect_src, spect_trg)  
 
 # reconstruct with Griffin Lim (later feed this wav as input to vocoder)
-print('Reconstructing with Griffin Lim...')
+print('Reconstructing with Griffin Lim. This may take some time...')
 x = reconstruct_waveform(spect_trg)
 
 sf.write('out_infer/%s_gen.wav'%fname, x, sample_rate)  # generated output
