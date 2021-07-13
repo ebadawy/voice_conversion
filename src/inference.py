@@ -1,5 +1,6 @@
 import argparse
 import os
+import glob
 import numpy as np
 import itertools
 import sys
@@ -20,7 +21,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--epoch", type=int, default=99, help="saved version based on epoch to test from")
 parser.add_argument("--model_name", type=str, help="name of the model")
 parser.add_argument("--gen_id", type=str, help="id of the generator for the target domain")
-parser.add_argument("--wav", type=str, help="path to wav file for input to transfer")
+
+parser.add_argument("--wav", type=str, default=None, help="path to wav file for input to transfer")
+parser.add_argument("--wavdir", type=str, default=None, help="path to directory of wav files for input to transfer")
 
 parser.add_argument("--plot", type=int, default=1, help="plot the spectrograms before and after (disable with -1)")
 parser.add_argument("--n_overlap", type=int, default=4, help="number of overlaps per slice")
@@ -33,7 +36,8 @@ parser.add_argument("--dim", type=int, default=32, help="number of filters in fi
 opt = parser.parse_args()
 print(opt)
 
-os.makedirs('out_infer', exist_ok=True)
+assert opt.wav or opt.wavdir , 'Please specify an input wav file or directory'
+assert not opt.wav or not opt.wavdir, 'Cannot specify both wav and wavdir, choose one'
 
 cuda = True if torch.cuda.is_available() else False
 Tensor = torch.cuda.FloatTensor if cuda else torch.Tensor
@@ -53,6 +57,11 @@ if cuda:
 assert os.path.exists("saved_models/%s/encoder_%02d.pth" % (opt.model_name, opt.epoch)), 'Check that trained encoder exists'
 assert os.path.exists("saved_models/%s/G%s_%02d.pth" % (opt.model_name, opt.gen_id, opt.epoch)), 'Check that trained generator exists'
     
+# Prepare directories    
+root = 'out_infer/%s_%d_G%s/'% (opt.model_name, opt.epoch, opt.gen_id)
+os.makedirs(root+'gen/', exist_ok=True)
+os.makedirs(root+'ref/', exist_ok=True)
+
 # Load pretrained models
 encoder.load_state_dict(torch.load("saved_models/%s/encoder_%02d.pth" % (opt.model_name, opt.epoch)))
 G.load_state_dict(torch.load("saved_models/%s/G%s_%02d.pth" % (opt.model_name, opt.gen_id, opt.epoch)))
@@ -60,10 +69,6 @@ G.load_state_dict(torch.load("saved_models/%s/G%s_%02d.pth" % (opt.model_name, o
 # Set to eval mode 
 encoder.eval()
 G.eval()
-
-# Load audio and preprocess
-sample = preprocess_wav(opt.wav)
-spect_src = melspectrogram(sample)
 
 # --------------------
 #  Local Inference
@@ -83,46 +88,63 @@ def infer(S):
 #  Global Inference (w/ a sliding window)
 # ------------------------------------------
 
-spect_src = np.pad(spect_src, ((0,0),(opt.img_width,opt.img_width)), 'constant')  # padding for consistent overlap
-length = spect_src.shape[1]
-spect_trg = np.zeros(spect_src.shape)
-hop = opt.img_width // opt.n_overlap
-
-for i in tqdm(range(0, length, hop)):
-    x = i + opt.img_width
-         
-    # Get cropped spectro of right dims
-    if x <= length:
-        S = spect_src[:, i:x]
-    else:  # pad sub on right if includes sub segments out of range
-        S = spect_src[:, i:]
-        S = np.pad(S, ((0,0),(x-length,0)), 'constant') 
-        
-    T = infer(S) # perform inference from trained model
+def audio_infer(wav):
     
-    # Add parts of target spectrogram with an average across overlapping segments    
-    for j in range(0, opt.img_width, hop):
-        y = j + hop
-        if i+y > length: break  # neglect sub segments out of range
-        t = T[:, j:y]
-        spect_trg[:, i+j:i+y] += t/opt.n_overlap  # add average element
+    # Load audio and preprocess
+    sample = preprocess_wav(wav)
+    spect_src = melspectrogram(sample)
 
-spect_trg = spect_trg[:, opt.img_width:-opt.img_width] # remove initial padding
+    spect_src = np.pad(spect_src, ((0,0),(opt.img_width,opt.img_width)), 'constant')  # padding for consistent overlap
+    length = spect_src.shape[1]
+    spect_trg = np.zeros(spect_src.shape)
+    hop = opt.img_width // opt.n_overlap
 
-# prepare file name for saving
-f = opt.wav.split('/')[-1]
-wavname = f.split('.')[0]
-fname = 'G%s_%s_%s_%s' % (opt.gen_id, opt.model_name, opt.epoch, wavname)
+    for i in tqdm(range(0, length, hop)):
+        x = i + opt.img_width
 
-# plot transfer if specified
-if opt.plot != -1:
-    os.makedirs('out_infer/plots/', exist_ok=True)
-    spect_src = spect_src[:, opt.img_width:-opt.img_width]
-    plot_mel_transfer_infer('out_infer/plots/%s.png' % fname, spect_src, spect_trg)  
+        # Get cropped spectro of right dims
+        if x <= length:
+            S = spect_src[:, i:x]
+        else:  # pad sub on right if includes sub segments out of range
+            S = spect_src[:, i:]
+            S = np.pad(S, ((0,0),(x-length,0)), 'constant') 
 
-# reconstruct with Griffin Lim (later feed this wav as input to vocoder)
-print('Reconstructing with Griffin Lim. This may take some time...')
-x = reconstruct_waveform(spect_trg)
+        T = infer(S) # perform inference from trained model
 
-sf.write('out_infer/%s_gen.wav'%fname, x, sample_rate)  # generated output
-sf.write('out_infer/%s_ref.wav'%fname, sample, sample_rate)  # input reference (for convenience)
+        # Add parts of target spectrogram with an average across overlapping segments    
+        for j in range(0, opt.img_width, hop):
+            y = j + hop
+            if i+y > length: break  # neglect sub segments out of range
+            t = T[:, j:y]
+            spect_trg[:, i+j:i+y] += t/opt.n_overlap  # add average element
+
+    spect_trg = spect_trg[:, opt.img_width:-opt.img_width] # remove initial padding
+
+    # prepare file name for saving
+    f = wav.split('/')[-1]
+    wavname = f.split('.')[0]
+    fname = 'G%s_%s' % (opt.gen_id, wavname)
+
+    # plot transfer if specified
+    if opt.plot != -1:
+        os.makedirs(root+'plots/', exist_ok=True)
+        spect_src = spect_src[:, opt.img_width:-opt.img_width]
+        plot_mel_transfer_infer(root+'plots/%s.png' % fname, spect_src, spect_trg)  
+
+    # reconstruct with Griffin Lim (later feed this wav as input to vocoder)
+    print('Reconstructing with Griffin Lim...')
+    x = reconstruct_waveform(spect_trg)
+
+    sf.write(root+'gen/%s_gen.wav'%fname, x, sample_rate)  # generated output
+    sf.write(root+'ref/%s_ref.wav'%fname, sample, sample_rate)  # input reference (for convenience)
+    
+    
+if opt.wav:
+    audio_infer(opt.wav)
+
+if opt.wavdir:
+    audio_files = glob.glob(os.path.join(opt.wavdir, '*.wav'))
+    for i, wav in enumerate(audio_files):
+        print('[File %d/%d]' % (i+1, len(audio_files)))
+        audio_infer(wav)
+        
