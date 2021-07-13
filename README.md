@@ -34,6 +34,12 @@ python preprocess.py --model_name [name of the model] --dataset [path/to/dataset
 python train.py --model_name [name of the model] --dataset [path/to/dataset]
 ```
 
+## Inference
+
+```bash
+python train.py --model_name [name of the model] --epoch [epoch number] --gen_id [id of generator] --wav [path/to/input.wav]
+```
+
 ### Generated audios
 
 Examples of generated audios using flicker8k audio dataset https://ebadawy.github.io/post/speech_style_transfer.
@@ -42,10 +48,8 @@ Examples of generated audios using flicker8k audio dataset https://ebadawy.githu
 
 - Rewrite `preprocess.py` to handle:
   - multi-process feature extraction
-  - create train/test/val split
   - display error messages for failed cases
 - Create:
-  - `inference.py`
   - `requirements.txt`
   - Notebook for data visualisation
 - Upload pre-trained models
