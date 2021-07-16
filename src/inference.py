@@ -24,12 +24,12 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--epoch", type=int, default=99, help="saved version based on epoch to test from")
 parser.add_argument("--model_name", type=str, help="name of the model")
 parser.add_argument("--trg_id", type=str, help="id of the generator for the target domain")
-parser.add_argument("--src_id", type=str, help="id of the generator for the source domain")
+parser.add_argument("--src_id", type=str, default=None, help="id of the generator for the source domain (Specify for a recon/cyclic evaluation with SSIM)")
 
 parser.add_argument("--wav", type=str, default=None, help="path to wav file for input to transfer")
 parser.add_argument("--wavdir", type=str, default=None, help="path to directory of wav files for input to transfer")
 
-parser.add_argument("--plot", type=int, default=-1, help="plot the spectrograms before and after (disable with -1)")
+parser.add_argument("--plot", type=int, default=1, help="plot the spectrograms before and after (disable with -1)")
 parser.add_argument("--n_overlap", type=int, default=4, help="number of overlaps per slice")
 parser.add_argument("--img_height", type=int, default=128, help="size of image height")
 parser.add_argument("--img_width", type=int, default=128, help="size of image width")
@@ -52,7 +52,7 @@ shared_dim = opt.dim * 2 ** opt.n_downsample
 
 assert os.path.exists("saved_models/%s/encoder_%02d.pth" % (opt.model_name, opt.epoch)), 'Check that trained encoder exists'
 assert os.path.exists("saved_models/%s/G%s_%02d.pth" % (opt.model_name, opt.trg_id, opt.epoch)), 'Check that trained generator exists'
-assert os.path.exists("saved_models/%s/G%s_%02d.pth" % (opt.model_name, opt.src_id, opt.epoch)), 'Check that trained generator exists'
+if opt.src_id: assert os.path.exists("saved_models/%s/G%s_%02d.pth" % (opt.model_name, opt.src_id, opt.epoch)), 'Check that trained generator exists'
 
 # Prepare directories    
 root = 'out_infer/%s_%d_G%s/'% (opt.model_name, opt.epoch, opt.trg_id)
@@ -62,26 +62,27 @@ os.makedirs(root+'ref/', exist_ok=True)
 # Initialize encoder and decoder
 encoder = Encoder(dim=opt.dim, in_channels=opt.channels, n_downsample=opt.n_downsample)
 G_trg= Generator(dim=opt.dim, out_channels=opt.channels, n_upsample=opt.n_downsample, shared_block=ResidualBlock(features=shared_dim))
-G_src = Generator(dim=opt.dim, out_channels=opt.channels, n_upsample=opt.n_downsample, shared_block=ResidualBlock(features=shared_dim))
+if opt.src_id: G_src = Generator(dim=opt.dim, out_channels=opt.channels, n_upsample=opt.n_downsample, shared_block=ResidualBlock(features=shared_dim))
 
 if cuda:
     encoder = encoder.cuda()
     G_trg= G_trg.cuda()
-    G_src = G_src.cuda()
+    if opt.src_id: G_src = G_src.cuda()
 
 # Load pretrained models
 encoder.load_state_dict(torch.load("saved_models/%s/encoder_%02d.pth" % (opt.model_name, opt.epoch)))
 G_trg.load_state_dict(torch.load("saved_models/%s/G%s_%02d.pth" % (opt.model_name, opt.trg_id, opt.epoch)))
-G_src.load_state_dict(torch.load("saved_models/%s/G%s_%02d.pth" % (opt.model_name, opt.src_id, opt.epoch)))
+if opt.src_id: G_src.load_state_dict(torch.load("saved_models/%s/G%s_%02d.pth" % (opt.model_name, opt.src_id, opt.epoch)))
 
 # Set to eval mode 
 encoder.eval()
 G_trg.eval()
-G_src.eval()
+if opt.src_id: G_src.eval()
 
 # Initialising arrays to store SSIM (will average at end)
-ssim_recon = []
-ssim_cyclic = []
+if opt.src_id: 
+    ssim_recon = []
+    ssim_cyclic = []
 
 # ----------------------------------------------------
 #  SSIM Computation (Evaluating reconstruction)
@@ -103,14 +104,22 @@ def infer(S):
     S = S.view(1, 1, opt.img_height, opt.img_width)
     X = Variable(S.type(Tensor))
     
+    ret = {} # just stores inference output
+    
     mu, Z = encoder(X)
-    recon_X = G_src(Z)
     fake_X = G_trg(Z)
+    ret['fake'] = to_numpy(fake_X)
     
-    mu_, Z_ = encoder(fake_X)
-    cyclic_X = G_src(Z_)
     
-    return to_numpy(recon_X), to_numpy(fake_X), to_numpy(cyclic_X)
+    if opt.src_id: 
+        recon_X = G_src(Z)
+        ret['recon'] = to_numpy(recon_X)
+        
+        mu_, Z_ = encoder(fake_X)
+        cyclic_X = G_src(Z_)
+        ret['cyclic'] = to_numpy(cyclic_X)
+    
+    return ret
 
 # ------------------------------------------
 #  Global Inference (w/ a sliding window)
@@ -142,7 +151,11 @@ def audio_infer(wav):
             S = spect_src[:, i:]
             S = np.pad(S, ((0,0),(x-length,0)), 'constant') 
 
-        R, T, C = infer(S) # perform inference from trained model
+        ret = infer(S) # perform inference from trained model
+        T = ret['fake']
+        if opt.src_id:
+            R = ret['recon']
+            C = ret['cyclic']
 
         # Add parts of target spectrogram with an average across overlapping segments    
         for j in range(0, opt.img_width, hop):
@@ -150,23 +163,29 @@ def audio_infer(wav):
             if i+y > length: break  # neglect sub segments out of range
                 
             # select subsegments to consider for overlap
-            r, t, c = R[:, j:y], T[:, j:y], C[:, j:y]
+            t = T[:, j:y]
+            if opt.src_id:
+                r = R[:, j:y]
+                c = C[:, j:y]
             
             # add average element
             spect_trg[:, i+j:i+y] += t/opt.n_overlap
-            spect_recon[:, i+j:i+y] += r/opt.n_overlap
-            spect_cyclic[:, i+j:i+y] += c/opt.n_overlap
+            if opt.src_id:
+                spect_recon[:, i+j:i+y] += r/opt.n_overlap
+                spect_cyclic[:, i+j:i+y] += c/opt.n_overlap
 
 
     # remove initial padding
     spect_src = spect_src[:, opt.img_width:-opt.img_width]
     spect_trg = spect_trg[:, opt.img_width:-opt.img_width]
-    spect_recon = spect_recon[:, opt.img_width:-opt.img_width] 
-    spect_cyclic = spect_cyclic[:, opt.img_width:-opt.img_width] 
+    if opt.src_id:
+        spect_recon = spect_recon[:, opt.img_width:-opt.img_width] 
+        spect_cyclic = spect_cyclic[:, opt.img_width:-opt.img_width] 
                                                  
     # Compute and append SSIM
-    ssim_recon.append(ssim(spect_src, spect_recon))
-    ssim_cyclic.append(ssim(spect_src, spect_cyclic))
+    if opt.src_id:
+        ssim_recon.append(ssim(spect_src, spect_recon))
+        ssim_cyclic.append(ssim(spect_src, spect_cyclic))
 
     # prepare file name for saving
     f = wav.split('/')[-1]
@@ -196,6 +215,7 @@ if opt.wavdir:
         audio_infer(wav)
         
 # Display average SSIM
-print('Average SSIM for recon: %0.2f'%mean(ssim_recon))
-print('Average SSIM for cyclic: %0.2f'%mean(ssim_cyclic))
+if opt.src_id:
+    print('Average SSIM for recon: %0.2f'%mean(ssim_recon))
+    print('Average SSIM for cyclic: %0.2f'%mean(ssim_cyclic))
         
