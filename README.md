@@ -1,5 +1,5 @@
 
-## Voice Conversion Using Speech-to-Speech Neuro-Style Transfer
+# Voice Conversion Using Speech-to-Speech Neuro-Style Transfer
 
 This repo contains the official implementation for the INTERSPEECH 2020 paper [Voice Conversion Using Speech-to-Speech Neuro-Style Transfer](http://www.interspeech2020.org/uploadfile/pdf/Thu-3-4-11.pdf).
 
