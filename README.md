@@ -1,5 +1,5 @@
 
-# Voice Conversion Using Speech-to-Speech Neuro-Style Transfer
+##  Voice Conversion Using Speech-to-Speech Neuro-Style Transfer
 
 This repo contains the official implementation for the INTERSPEECH 2020 paper [Voice Conversion Using Speech-to-Speech Neuro-Style Transfer](http://www.interspeech2020.org/uploadfile/pdf/Thu-3-4-11.pdf).
 
@@ -45,13 +45,13 @@ The VAE-GAN model uses the melspectrograms to learn style transfer between two s
 python train.py --model_name [name of the model] --dataset [path/to/dataset]
 ```
 
-### Visualization
+#### Visualization
 By default, the code plots a batch of input and output melspectrograms every epoch.  You may add `--plot-interval -1` to the above command to disable it. Alternatively you may add `--plot-interval 20` to plot every 20 epochs.
 
-### Saving Models
+#### Saving Models
 By default, models are saved every epoch. With smaller datasets than Flickr8k it may be more appropriate to save less frequently by adding `--checkpoint_interval 20` for 20 epochs.
 
-### Epochs
+#### Epochs
 The max number of epochs may be set with `--n_epochs`. For smaller datasets, you may want to increase this to more than the default 100. To load a pretrained model you can use `--epoch` and set it to the epoch number of the saved model.
 
 ## Pretrained Model
@@ -71,15 +71,15 @@ The script then uses Griffin-Lim to reconstruct audio from the generated melspec
 ```bash
 python train.py --model_name [name of the model] --epoch [epoch number] --trg_id [id of target generator] --wav [path/to/source_audio.wav]
 ```
-### Directory Input
+####  Directory Input
 
 Instead of a single .wav as input you may specify a whole directory of .wav files by using `--wavdir` instead of `--wav`. 
 
-### Visualization
+####  Visualization
 
 By default, plotting input and output melspectrograms is enabled. This is useful for a visual comparison between trained models. To disable set `--plot -1` 
 
-### Reconstructive Evaluation
+#### Reconstructive Evaluation
 
 Alongside the process of generating, components for reconstruction and cyclic reconstruction may be enabled by specifying the generator id of the source audio `--src_id [id of source generator]`. 
 
