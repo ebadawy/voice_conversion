@@ -89,10 +89,7 @@ if opt.src_id:
 # ----------------------------------------------------
 
 def ssim(spect_src, spect_recon):
-    r_max = spect_recon.max()
-    r_min = spect_recon.min()
-    res = skimage.metrics.structural_similarity(spect_src, spect_recon, data_range=(r_max-r_min))
-    return res
+    return skimage.metrics.structural_similarity(spect_src, spect_recon, data_range=1)
 
 # -----------------------------------------
 #  Local Inference and SSIM evaluation
