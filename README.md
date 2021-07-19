@@ -48,7 +48,7 @@ python train.py --model_name [name of the model] --dataset [path/to/dataset]
 ### Visualization
 By default, the code plots a batch of input and output melspectrograms every epoch.  You may add `--plot-interval -1` to the above command to disable it. Alternatively you may add `--plot-interval 20` to plot every 20 epochs.
 
-###Saving Models
+### Saving Models
 By default, models are saved every epoch. With smaller datasets than Flickr8k it may be more appropriate to save less frequently by adding `--checkpoint_interval 20` for 20 epochs.
 
 ### Epochs
