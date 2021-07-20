@@ -34,7 +34,7 @@ Note that the number of speakers are currently limited to two. This may extended
 The prepared dataset is organised into a train/eval/test split, the audio is preprocessed and melspectrograms are computed. 
 
 ```bash
-python preprocess.py --model_name [name of the model] --dataset [path/to/dataset]
+python preprocess.py --dataset [path/to/dataset] --test-size [float] --eval-size [float]
 ```
 
 ## Training
