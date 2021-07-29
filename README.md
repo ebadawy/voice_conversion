@@ -7,7 +7,7 @@ This repo contains the official implementation of the VAE-GAN from the INTERSPEE
 [![](https://ebadawy.github.io/post/speech_style_transfer/synthesis_pipeline.png)](https://youtu.be/zbVQwqx-kYk)
 
 
-Examples of generated audios using the Flickr8k Audio Corpus: https://ebadawy.github.io/post/speech_style_transfer.
+Examples of generated audio using the Flickr8k Audio Corpus: https://ebadawy.github.io/post/speech_style_transfer. Note that these examples are a result of feeding audio reconstructions of this VAE-GAN to [an implementation of WaveNet](https://github.com/r9y9/wavenet_vocoder). If you prefer, other time-frequency vocoders may also be used.
 
 ## 1. Data Preperation
 
