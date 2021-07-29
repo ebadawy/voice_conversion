@@ -15,7 +15,6 @@ parser.add_argument("--n_spkrs", type=int, default=2, help="number of speakers f
 opt = parser.parse_args()
 print(opt)
 
-assert opt.n_spkrs == 2, 'Currently only two speakers are supported'
 not_train_size = opt.test_size + opt.eval_size
 
 # Stores preprocessed spectrograms
