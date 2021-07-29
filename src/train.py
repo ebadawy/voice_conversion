@@ -51,8 +51,8 @@ transfer_combos = list(itertools.combinations(range(opt.n_spkrs), 2))
 # Create plot output directories
 if opt.plot_interval != -1:
     for pair in transfer_combos:
-        os.makedirs("out_train/%s/plot_%d_%d/" % (opt.model_name, pair[0], pair[1]), exist_ok=True)
-        os.makedirs("out_train/%s/plot_%d_%d/" % (opt.model_name, pair[1], pair[0]), exist_ok=True)
+        os.makedirs("out_train/%s/plot_%dt%d/" % (opt.model_name, pair[0], pair[1]), exist_ok=True)
+        os.makedirs("out_train/%s/plot_%dt%d/" % (opt.model_name, pair[1], pair[0]), exist_ok=True)
 
 # Losses
 criterion_GAN = torch.nn.MSELoss()
@@ -230,8 +230,8 @@ def train_local(i, epoch, batch, id_1, id_2, losses):
         
         # Plot first batch every epoch or few epochs
         if opt.plot_interval != -1 and (epoch+1) % opt.plot_interval == 0 and i == 0:
-            plot_batch_train(opt.model_name, 'plot_%d_%d'%(id_1, id_2), epoch, X1, cycle_X1, fake_X2, X2)
-            plot_batch_train(opt.model_name, 'plot_%d_%d'%(id_2, id_1), epoch, X2, cycle_X2, fake_X1, X1)
+            plot_batch_train(opt.model_name, 'plot_%dt%d'%(id_1, id_2), epoch, X1, cycle_X1, fake_X2, X2)
+            plot_batch_train(opt.model_name, 'plot_%dt%d'%(id_2, id_1), epoch, X2, cycle_X2, fake_X1, X1)
 
         losses['G'].append(loss_G.item())
         losses['D'].append((loss_D1 + loss_D2).item())
