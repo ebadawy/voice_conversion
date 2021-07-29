@@ -1,15 +1,15 @@
 
 ##  Voice Conversion Using Speech-to-Speech Neuro-Style Transfer
 
-This repo contains the official implementation for the INTERSPEECH 2020 paper [Voice Conversion Using Speech-to-Speech Neuro-Style Transfer](http://www.interspeech2020.org/uploadfile/pdf/Thu-3-4-11.pdf).
+This repo contains the official implementation of the VAE-GAN from the INTERSPEECH 2020 paper [Voice Conversion Using Speech-to-Speech Neuro-Style Transfer](http://www.interspeech2020.org/uploadfile/pdf/Thu-3-4-11.pdf).
 
 
 [![](https://ebadawy.github.io/post/speech_style_transfer/synthesis_pipeline.png)](https://youtu.be/zbVQwqx-kYk)
 
 
-Examples of generated audios using the Flickr8k Audio Corpus: https://ebadawy.github.io/post/speech_style_transfer.
+Examples of generated audio using the Flickr8k Audio Corpus: https://ebadawy.github.io/post/speech_style_transfer. Note that these examples are a result of feeding audio reconstructions of this VAE-GAN to [an implementation of WaveNet](https://github.com/r9y9/wavenet_vocoder).
 
-## Data Preperation
+## 1. Data Preperation
 
 Dataset file structure:
 
@@ -29,7 +29,7 @@ Note that the number of speakers are currently limited to two. This may extended
 
 [Here](https://github.com/RussellSB/tt-vae-gan/blob/e530888af4841cba78a77cda08f8b9dd33dfbd0b/data_prep/flickr.py) is an example script for setting up data preparation from the Flickr8k Audio Corpus. The speakers of interest are the same as in the paper, but may be modified to other speakers if desirable.
 
-## Data Preprocessing
+## 2. Data Preprocessing
 
 The prepared dataset is organised into a train/eval/test split, the audio is preprocessed and melspectrograms are computed. 
 
@@ -37,7 +37,7 @@ The prepared dataset is organised into a train/eval/test split, the audio is pre
 python preprocess.py --dataset [path/to/dataset] --test-size [float] --eval-size [float]
 ```
 
-## Training
+## 3. Training
 
 The VAE-GAN model uses the melspectrograms to learn style transfer between two speakers.
 
@@ -45,16 +45,16 @@ The VAE-GAN model uses the melspectrograms to learn style transfer between two s
 python train.py --model_name [name of the model] --dataset [path/to/dataset]
 ```
 
-#### Visualization
+#### 3.1. Visualization
 By default, the code plots a batch of input and output melspectrograms every epoch.  You may add `--plot-interval -1` to the above command to disable it. Alternatively you may add `--plot-interval 20` to plot every 20 epochs.
 
-#### Saving Models
+#### 3.2. Saving Models
 By default, models are saved every epoch. With smaller datasets than Flickr8k it may be more appropriate to save less frequently by adding `--checkpoint_interval 20` for 20 epochs.
 
-#### Epochs
+#### 3.3. Epochs
 The max number of epochs may be set with `--n_epochs`. For smaller datasets, you may want to increase this to more than the default 100. To load a pretrained model you can use `--epoch` and set it to the epoch number of the saved model.
 
-## Pretrained Model
+#### 3.4. Pretrained Model
 
 You can access pretrained model files [here](https://drive.google.com/drive/folders/1Wui2Pt4sOBl71exRh49GX_JEBpFv_vNg?usp=sharing). By downloading and storing them in a directory `src/saved_models/pretrained`, you may call it for training or inference with:
 
@@ -62,24 +62,24 @@ You can access pretrained model files [here](https://drive.google.com/drive/fold
 
 Note that for inference the discriminator files D1 and D2 are not required (meanwhile for training further they are). Also here, G1 refers to the decoding generator for speaker 1 (female) and G2 for speaker 2 (male).
 
-## Inference
+## 4. Inference
 
 The trained VAE-GAN is used for inference on a specified audio file. It works by; sliding a window over a full melspectrogram, locally inferring melspectrogram subsamples, and averaging the overlap.
 
 The script then uses Griffin-Lim to reconstruct audio from the generated melspectrogram. For achieving high quality results like the paper you can feed the reconstructed audio to trained vocoders such as WaveNet. 
 
 ```bash
-python train.py --model_name [name of the model] --epoch [epoch number] --trg_id [id of target generator] --wav [path/to/source_audio.wav]
+python inference.py --model_name [name of the model] --epoch [epoch number] --trg_id [id of target generator] --wav [path/to/source_audio.wav]
 ```
-####  Directory Input
+#### 4.1. Directory Input
 
 Instead of a single .wav as input you may specify a whole directory of .wav files by using `--wavdir` instead of `--wav`. 
 
-####  Visualization
+#### 4.2. Visualization
 
 By default, plotting input and output melspectrograms is enabled. This is useful for a visual comparison between trained models. To disable set `--plot -1` 
 
-#### Reconstructive Evaluation
+#### 4.3. Reconstructive Evaluation
 
 Alongside the process of generating, components for reconstruction and cyclic reconstruction may be enabled by specifying the generator id of the source audio `--src_id [id of source generator]`. 
 
