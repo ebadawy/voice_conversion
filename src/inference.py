@@ -55,9 +55,10 @@ assert os.path.exists("saved_models/%s/G%s_%02d.pth" % (opt.model_name, opt.trg_
 if opt.src_id: assert os.path.exists("saved_models/%s/G%s_%02d.pth" % (opt.model_name, opt.src_id, opt.epoch)), 'Check that trained generator exists'
 
 # Prepare directories    
-root = 'out_infer/%s_%d_G%s/'% (opt.model_name, opt.epoch, opt.trg_id)
-os.makedirs(root+'gen/', exist_ok=True)
-os.makedirs(root+'ref/', exist_ok=True)
+root = 'out_infer/%s_%d_G%s'% (opt.model_name, opt.epoch, opt.trg_id)
+if opt.src_id: root += '_S%d'%opt.src_id  # includes src_id if specified
+os.makedirs(root+'/gen/', exist_ok=True)
+os.makedirs(root+'/ref/', exist_ok=True)
 
 # Initialize encoder and decoder
 encoder = Encoder(dim=opt.dim, in_channels=opt.channels, n_downsample=opt.n_downsample)
@@ -191,15 +192,15 @@ def audio_infer(wav):
 
     # plot transfer if specified
     if opt.plot != -1:
-        os.makedirs(root+'plots/', exist_ok=True)
-        plot_mel_transfer_infer(root+'plots/%s.png' % fname, spect_src, spect_trg)  
+        os.makedirs(root+'/plots/', exist_ok=True)
+        plot_mel_transfer_infer(root+'/plots/%s.png' % fname, spect_src, spect_trg)  
 
     # reconstruct with Griffin Lim (takes a while, later feed this wav as input to vocoder)
     print('Reconstructing with Griffin Lim...')
     x = reconstruct_waveform(spect_trg)
     
-    sf.write(root+'gen/%s_gen.wav'%fname, x, sample_rate)  # generated output
-    sf.write(root+'ref/%s_ref.wav'%fname, sample, sample_rate)  # input reference (for convenience)
+    sf.write(root+'/gen/%s_gen.wav'%fname, x, sample_rate)  # generated output
+    sf.write(root+'/ref/%s_ref.wav'%fname, sample, sample_rate)  # input reference (for convenience)
     
     
 if opt.wav:
@@ -215,4 +216,3 @@ if opt.wavdir:
 if opt.src_id:
     print('Average SSIM for recon: %0.2f'%mean(ssim_recon))
     print('Average SSIM for cyclic: %0.2f'%mean(ssim_cyclic))
-        
