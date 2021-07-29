@@ -69,7 +69,7 @@ The trained VAE-GAN is used for inference on a specified audio file. It works by
 The script then uses Griffin-Lim to reconstruct audio from the generated melspectrogram. For achieving high quality results like the paper you can feed the reconstructed audio to trained vocoders such as WaveNet. 
 
 ```bash
-python train.py --model_name [name of the model] --epoch [epoch number] --trg_id [id of target generator] --wav [path/to/source_audio.wav]
+python inference.py --model_name [name of the model] --epoch [epoch number] --trg_id [id of target generator] --wav [path/to/source_audio.wav]
 ```
 ####  Directory Input
 
