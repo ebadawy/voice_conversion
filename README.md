@@ -45,16 +45,16 @@ The VAE-GAN model uses the melspectrograms to learn style transfer between two s
 python train.py --model_name [name of the model] --dataset [path/to/dataset]
 ```
 
-#### Visualization
+#### 3.1. Visualization
 By default, the code plots a batch of input and output melspectrograms every epoch.  You may add `--plot-interval -1` to the above command to disable it. Alternatively you may add `--plot-interval 20` to plot every 20 epochs.
 
-#### Saving Models
+#### 3.2. Saving Models
 By default, models are saved every epoch. With smaller datasets than Flickr8k it may be more appropriate to save less frequently by adding `--checkpoint_interval 20` for 20 epochs.
 
-#### Epochs
+#### 3.3. Epochs
 The max number of epochs may be set with `--n_epochs`. For smaller datasets, you may want to increase this to more than the default 100. To load a pretrained model you can use `--epoch` and set it to the epoch number of the saved model.
 
-#### Pretrained Model
+#### 3.4. Pretrained Model
 
 You can access pretrained model files [here](https://drive.google.com/drive/folders/1Wui2Pt4sOBl71exRh49GX_JEBpFv_vNg?usp=sharing). By downloading and storing them in a directory `src/saved_models/pretrained`, you may call it for training or inference with:
 
@@ -71,15 +71,15 @@ The script then uses Griffin-Lim to reconstruct audio from the generated melspec
 ```bash
 python inference.py --model_name [name of the model] --epoch [epoch number] --trg_id [id of target generator] --wav [path/to/source_audio.wav]
 ```
-####  Directory Input
+#### 4.1. Directory Input
 
 Instead of a single .wav as input you may specify a whole directory of .wav files by using `--wavdir` instead of `--wav`. 
 
-####  Visualization
+#### 4.2. Visualization
 
 By default, plotting input and output melspectrograms is enabled. This is useful for a visual comparison between trained models. To disable set `--plot -1` 
 
-#### Reconstructive Evaluation
+#### 4.3. Reconstructive Evaluation
 
 Alongside the process of generating, components for reconstruction and cyclic reconstruction may be enabled by specifying the generator id of the source audio `--src_id [id of source generator]`. 
 
