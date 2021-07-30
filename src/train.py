@@ -78,10 +78,10 @@ if cuda:
 
 if opt.epoch != 0:
     # Load pretrained models
-    encoder.load_state_dict(torch.load("saved_models/%s/encoder_%02d.pth" % (opt.model_name, opt.epoch)))
+    encoder.load_state_dict(torch.load("saved_models/%s/encoder_%02d.pth" % (opt.model_name, opt.epoch-1)))
     for n in range(opt.n_spkrs):
-        G[n].load_state_dict(torch.load("saved_models/%s/G%d_%02d.pth" % (opt.model_name, n+1, opt.epoch)))
-        D[n].load_state_dict(torch.load("saved_models/%s/D%d_%02d.pth" % (opt.model_name, n+1, opt.epoch)))
+        G[n].load_state_dict(torch.load("saved_models/%s/G%d_%02d.pth" % (opt.model_name, n+1, opt.epoch-1)))
+        D[n].load_state_dict(torch.load("saved_models/%s/D%d_%02d.pth" % (opt.model_name, n+1, opt.epoch-1)))
 else:
     # Initialize weights
     encoder.apply(weights_init_normal)
