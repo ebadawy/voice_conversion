@@ -66,7 +66,7 @@ Note that for inference the discriminator files D1 and D2 are not required (mean
 
 The trained VAE-GAN is used for inference on a specified audio file. It works by; sliding a window over a full melspectrogram, locally inferring melspectrogram subsamples, and averaging the overlap.
 
-The script then uses Griffin-Lim to reconstruct audio from the generated melspectrogram. For achieving high quality results like the paper you can feed the reconstructed audio to trained vocoders such as WaveNet. 
+The script then uses Griffin-Lim to reconstruct audio from the generated melspectrogram. For achieving high quality results like the paper you can feed the reconstructed audio to trained vocoders such as WaveNet. An example pipeline of using this model with wavenet can be found [here](https://github.com/RussellSB/tt-vae-gan). 
 
 ```bash
 python inference.py --model_name [name of the model] --epoch [epoch number] --trg_id [id of target generator] --wav [path/to/source_audio.wav]
