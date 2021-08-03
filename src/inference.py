@@ -56,7 +56,7 @@ if opt.src_id: assert os.path.exists("saved_models/%s/G%s_%02d.pth" % (opt.model
 
 # Prepare directories    
 root = 'out_infer/%s_%d_G%s'% (opt.model_name, opt.epoch, opt.trg_id)
-if opt.src_id: root += '_S%d'%opt.src_id  # includes src_id if specified
+if opt.src_id: root += '_S%s'%opt.src_id  # includes src_id if specified
 os.makedirs(root+'/gen/', exist_ok=True)
 os.makedirs(root+'/ref/', exist_ok=True)
 
