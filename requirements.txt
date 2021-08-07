@@ -1,0 +1,10 @@
+librosa==0.8.1
+matplotlib==3.4.2
+numpy==1.21.1
+scikit_learn==0.24.2
+scipy==1.7.1
+skimage==0.0
+soundfile==0.10.3.post1
+torch==1.9.0
+tqdm==4.62.0
+webrtcvad==2.0.10
