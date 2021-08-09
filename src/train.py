@@ -138,8 +138,8 @@ def train_local(i, epoch, batch, id_1, id_2, losses):
         X2 = Variable(batch[id_2].type(Tensor))
 
         # Adversarial ground truths
-        valid = Variable(Tensor(np.ones((X1.size(0), *D[0].output_shape))), requires_grad=False)
-        fake = Variable(Tensor(np.zeros((X1.size(0), *D[0].output_shape))), requires_grad=False)
+        valid = Variable(Tensor(np.ones((X1.size(0), *D[id_1].output_shape))), requires_grad=False)
+        fake = Variable(Tensor(np.zeros((X1.size(0), *D[id_1].output_shape))), requires_grad=False)
 
         # -------------------------------
         #  Train Encoder and Generators
