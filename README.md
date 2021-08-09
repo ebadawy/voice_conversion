@@ -64,13 +64,14 @@ Note that for inference the discriminator files D1 and D2 are not required (mean
 
 ## 4. Inference
 
-The trained VAE-GAN is used for inference on a specified audio file. It works by; sliding a window over a full melspectrogram, locally inferring melspectrogram subsamples, and averaging the overlap.
-
-The script then uses Griffin-Lim to reconstruct audio from the generated melspectrogram. For achieving high quality results like the paper you can feed the reconstructed audio to trained vocoders such as WaveNet. 
+The trained VAE-GAN is used for inference on a specified audio file. It works by; sliding a window over a full melspectrogram, locally inferring melspectrogram subsamples, and averaging the overlap. The script then uses Griffin-Lim to reconstruct audio from the generated melspectrogram. 
 
 ```bash
 python inference.py --model_name [name of the model] --epoch [epoch number] --trg_id [id of target generator] --wav [path/to/source_audio.wav]
 ```
+
+For achieving high quality results like the paper you can feed the reconstructed audio to trained vocoders such as WaveNet. An example pipeline of using this model with wavenet can be found [here](https://github.com/RussellSB/tt-vae-gan). 
+
 #### 4.1. Directory Input
 
 Instead of a single .wav as input you may specify a whole directory of .wav files by using `--wavdir` instead of `--wav`. 
@@ -86,13 +87,6 @@ Alongside the process of generating, components for reconstruction and cyclic re
 When set, SSIM metrics for reconstructed melspectrograms and cyclically reconstructed melspectrograms are computed and printed at the end of inference. 
 
 This is an extra feature to help with comparing the reconstructive capabilities of different models. The higher the SSIM, the higher quality the reconstruction.
-
-## TODO:
-
-- Rewrite `preprocess.py` to handle:
-  - multi-process feature extraction
-  - display error messages for failed cases
-- Want to add something else? Please feel free to submit a PR with your changes or open an issue for that.
 
 
 ## References
@@ -117,3 +111,12 @@ If you find this code useful please cite us in your work:
   url={http://dx.doi.org/10.21437/Interspeech.2020-3056}
 }
 ```
+
+## TODO:
+
+- Rewrite `preprocess.py` to handle:
+  - multi-process feature extraction
+  - display error messages for failed cases
+- Create:
+  - Notebook for data visualisation
+- Want to add something else? Please feel free to submit a PR with your changes or open an issue for that.
