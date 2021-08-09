@@ -118,6 +118,5 @@ If you find this code useful please cite us in your work:
   - multi-process feature extraction
   - display error messages for failed cases
 - Create:
-  - `requirements.txt`
   - Notebook for data visualisation
 - Want to add something else? Please feel free to submit a PR with your changes or open an issue for that.
