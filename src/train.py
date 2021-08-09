@@ -16,6 +16,7 @@ import torch.nn.functional as F
 import torch
 
 from utils import plot_batch_train
+import random
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--epoch", type=int, default=0, help="epoch to start training from")
@@ -44,9 +45,6 @@ cuda = True if torch.cuda.is_available() else False
 
 # Create sample and checkpoint directories
 os.makedirs("saved_models/%s" % opt.model_name, exist_ok=True)
-
-# finds all possible transfer pairings without repetition (each will be used for a forward and backward pass)
-transfer_combos = list(itertools.combinations(range(opt.n_spkrs), 2))
 
 # Create plot output directories
 if opt.plot_interval != -1:
@@ -249,10 +247,10 @@ def train_global():
         losses = {'G': [],'D': []}
         progress = tqdm(enumerate(dataloader),desc='',total=len(dataloader))
         
-        for i, batch in progress:
-
-            for pair in transfer_combos:         
-                losses = train_local(i, epoch, batch, pair[0], pair[1], losses)
+        # For each target, randomly choose a source for training
+        for trg_id in range(opt.n_spkrs):
+            src_id = random.randint(0, opt.n_spkrs-1)   
+            losses = train_local(i, epoch, batch, pair[src_id], pair[trg_id], losses)
 
             # Update progress bar
             progress.set_description("[Epoch %d/%d] [D loss: %f] [G loss: %f] "
@@ -260,13 +258,13 @@ def train_global():
 
         # Update learning rates
         lr_scheduler_G.step()
-        for n in range(0, opt.n_spkrs):
+        for n in range(opt.n_spkrs):
             lr_scheduler_D[n].step()
 
         if opt.checkpoint_interval != -1 and (epoch+1) % opt.checkpoint_interval == 0:
             # Save model checkpoints
             torch.save(encoder.state_dict(), "saved_models/%s/encoder_%02d.pth" % (opt.model_name, epoch))
-            for n in range(0, opt.n_spkrs):
+            for n in range(opt.n_spkrs):
                 torch.save(G[n].state_dict(), "saved_models/%s/G%d_%02d.pth" % (opt.model_name, n+1, epoch))
                 torch.save(D[n].state_dict(), "saved_models/%s/D%d_%02d.pth" % (opt.model_name, n+1, epoch))
 
