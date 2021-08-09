@@ -20,13 +20,18 @@ class DataProc(torch.utils.data.Dataset):
 
     def __getitem__(self, item):
         rslt = []
-        for i in range(0,len(self.data_dict.keys())):
+        n_spkrs = len(self.data_dict.keys())
+
+        for i in range(0, n_spkrs):
             # chose random item based on prop distribution (length of each sample)
             tmp_lens = [j.shape[1] for j in self.data_dict[i]]
             item = np.random.choice(len(tmp_lens),p=tmp_lens/np.sum(tmp_lens))
             rslt.append(self.random_sample(i,item))
 
-        return {'A': np.array(rslt)[0,:], 'B': np.array(rslt)[1,:]}
+        # prepares a random sample per speaker
+        samples = {}
+        for i in range(0, n_spkrs): samples[i] = np.array(rslt)[i,:]
+        return samples
 
     def augment(self,data,sample_rate=16000, pitch_shift=0.5):
         if pitch_shift == 0 : return data
