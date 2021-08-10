@@ -25,7 +25,6 @@ Dataset file structure:
     ...
 # The directory under each speaker cannot be nested.
 ```
-Note that the number of speakers are currently limited to two. This may extended to an arbitrary amount N in the future. 
 
 [Here](https://github.com/RussellSB/tt-vae-gan/blob/e530888af4841cba78a77cda08f8b9dd33dfbd0b/data_prep/flickr.py) is an example script for setting up data preparation from the Flickr8k Audio Corpus. The speakers of interest are the same as in the paper, but may be modified to other speakers if desirable.
 
