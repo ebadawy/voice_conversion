@@ -46,12 +46,6 @@ cuda = True if torch.cuda.is_available() else False
 # Create sample and checkpoint directories
 os.makedirs("saved_models/%s" % opt.model_name, exist_ok=True)
 
-# Create plot output directories
-if opt.plot_interval != -1:
-    for pair in transfer_combos:  # fix-me
-        os.makedirs("out_train/%s/plot_%dt%d/" % (opt.model_name, pair[0], pair[1]), exist_ok=True)
-        os.makedirs("out_train/%s/plot_%dt%d/" % (opt.model_name, pair[1], pair[0]), exist_ok=True)
-
 # Losses
 criterion_GAN = torch.nn.MSELoss()
 criterion_pixel = torch.nn.L1Loss()
@@ -133,6 +127,12 @@ def compute_kl(mu):
 # ---------------------------------------------------------
 
 def train_local(i, epoch, batch, id_1, id_2, losses):
+        
+        # Create plot output directories if doesn't exist already
+        if opt.plot_interval != -1:
+            os.makedirs("out_train/%s/plot_%dt%d/" % (opt.model_name, id_1, id_2), exist_ok=True)
+            os.makedirs("out_train/%s/plot_%dt%d/" % (opt.model_name, id_2, id_1), exist_ok=True)
+
         # Set model input
         X1 = Variable(batch[id_1].type(Tensor))
         X2 = Variable(batch[id_2].type(Tensor))
