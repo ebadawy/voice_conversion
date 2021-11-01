@@ -33,7 +33,7 @@ parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads 
 parser.add_argument("--img_height", type=int, default=128, help="size of image height")
 parser.add_argument("--img_width", type=int, default=128, help="size of image width")
 parser.add_argument("--channels", type=int, default=1, help="number of image channels")
-parser.add_argument("--plot_interval", type=int, default=1, help="epoch interval between saving plots (disable with -1)")
+parser.add_argument("--plot_interval", type=int, default=-1, help="epoch interval between saving plots (disable with -1)")
 parser.add_argument("--checkpoint_interval", type=int, default=1, help="interval between saving model checkpoints")
 parser.add_argument("--n_downsample", type=int, default=2, help="number downsampling layers in encoder")
 parser.add_argument("--dim", type=int, default=32, help="number of filters in first encoder layer")
@@ -48,7 +48,7 @@ os.makedirs("saved_models/%s" % opt.model_name, exist_ok=True)
 
 # Create plot output directories
 if opt.plot_interval != -1:
-    for pair in transfer_combos:
+    for pair in transfer_combos:  # fix-me
         os.makedirs("out_train/%s/plot_%dt%d/" % (opt.model_name, pair[0], pair[1]), exist_ok=True)
         os.makedirs("out_train/%s/plot_%dt%d/" % (opt.model_name, pair[1], pair[0]), exist_ok=True)
 
