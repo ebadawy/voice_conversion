@@ -246,15 +246,18 @@ def train_global():
 
         losses = {'G': [],'D': []}
         progress = tqdm(enumerate(dataloader),desc='',total=len(dataloader))
+	
+	for i, batch in progress:
         
-        # For each target, randomly choose a source for training
-        for trg_id in range(opt.n_spkrs):
-            src_id = random.randint(0, opt.n_spkrs-1)   
-            losses = train_local(i, epoch, batch, pair[src_id], pair[trg_id], losses)
+		# For each target, randomly choose a source for training
+		for trg_id in range(opt.n_spkrs):
+			
+		    src_id = random.randint(0, opt.n_spkrs-1)   
+		    losses = train_local(i, epoch, batch, pair[src_id], pair[trg_id], losses)
 
-            # Update progress bar
-            progress.set_description("[Epoch %d/%d] [D loss: %f] [G loss: %f] "
-                % (epoch, opt.n_epochs, np.mean(losses['D']), np.mean(losses['G'])))
+		    # Update progress bar
+		    progress.set_description("[Epoch %d/%d] [D loss: %f] [G loss: %f] "
+			% (epoch, opt.n_epochs, np.mean(losses['D']), np.mean(losses['G'])))
 
         # Update learning rates
         lr_scheduler_G.step()
