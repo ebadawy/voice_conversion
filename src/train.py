@@ -252,8 +252,11 @@ def train_global():
 		# For each target, randomly choose a source for training
 		for trg_id in range(opt.n_spkrs):
 			
-		    src_id = random.randint(0, opt.n_spkrs-1)   
-		    losses = train_local(i, epoch, batch, pair[src_id], pair[trg_id], losses)
+		    potential_src_ids = range(opt.n_spkrs)
+		    potential_src_ids.pop(trg_id)  # cant have same src as trg
+		
+		    src_id = random.choice(potential_src_ids)   
+		    losses = train_local(i, epoch, batch, src_id, trg_id, losses)
 
 		    # Update progress bar
 		    progress.set_description("[Epoch %d/%d] [D loss: %f] [G loss: %f] "
