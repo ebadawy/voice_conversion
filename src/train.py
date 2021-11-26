@@ -252,7 +252,7 @@ def train_global():
 		# For each target, randomly choose a source for training
 		for trg_id in range(opt.n_spkrs):
 			
-		    potential_src_ids = range(opt.n_spkrs)
+		    potential_src_ids = list(range(opt.n_spkrs))
 		    potential_src_ids.pop(trg_id)  # cant have same src as trg
 		
 		    src_id = random.choice(potential_src_ids)   
