@@ -106,7 +106,13 @@ def normalize_volume(wav, target_dBFS, increase_only=False, decrease_only=False)
 
 
 def ls(path):
-    return os.popen('ls %s'%path).read().split('\n')[:-1]
+    # return os.popen('ls %s'%path).read().split('\n')[:-1]
+    if os.name == 'posix':  # for Linux and macOS
+        return os.popen('ls %s' %path).read().split('\n')[:-1]
+    elif os.name == 'nt':  # for Windows
+        return os.popen('dir /b %s' %path).read().split('\n')[:-1]
+    else:
+        raise OSError('Unsupported operating system: %s' % os.name)
 
 def label_2_float(x, bits):
     return 2 * x / (2**bits - 1.) - 1.
