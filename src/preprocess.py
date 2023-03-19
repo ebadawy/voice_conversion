@@ -34,7 +34,11 @@ def get_spect(wav):
   
 
 for spkr in range(opt.n_spkrs):
-    wavs = ls('%s/spkr_%s | grep .wav'%(opt.dataset, spkr+1))
+    #wavs = ls('%s/spkr_%s | grep .wav'%(opt.dataset, spkr+1))
+    if os.name == 'nt':
+        wavs = ls('%s\\spkr_%s\\*.wav'%(opt.dataset, spkr+1))
+    else:
+        wavs = ls('%s/spkr_%s | grep .wav'%(opt.dataset, spkr+1))
     
     # Prepares reference filenames from train/eval/test split
     train_refs[spkr], temp_refs = train_test_split(wavs, test_size=(not_train_size))
