@@ -42,7 +42,7 @@ for spkr in range(opt.n_spkrs):
     
     # Prepares reference filenames from train/eval/test split
     train_refs[spkr], temp_refs = train_test_split(wavs, test_size=(not_train_size))
-    if len(temp_refs) < 4:
+    if len(temp_refs) < 2:
         print("Not enough samples to split into train and test sets.")
     exit()
     eval_refs[spkr], test_refs[spkr] = train_test_split(temp_refs, test_size=(opt.test_size/not_train_size))
