@@ -18,103 +18,6 @@ import torch
 from utils import plot_batch_train
 import random
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--epoch", type=int, default=0, help="epoch to start training from")
-parser.add_argument("--n_epochs", type=int, default=100, help="number of epochs of training")
-parser.add_argument("--model_name", type=str, help="name of the model")
-parser.add_argument("--dataset", type=str, help="path to dataset for training")
-parser.add_argument("--n_spkrs", type=int, default=2, help="number of speakers for conversion, must match that of preprocessing")
-parser.add_argument("--batch_size", type=int, default=4, help="size of the batches")
-parser.add_argument("--lr", type=float, default=0.0001, help="adam: learning rate")
-parser.add_argument("--b1", type=float, default=0.5, help="adam: decay of first order momentum of gradient")
-parser.add_argument("--b2", type=float, default=0.999, help="adam: decay of first order momentum of gradient")
-parser.add_argument("--decay_epoch", type=int, default=50, help="epoch from which to start lr decay")
-parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads to use during batch generation")
-parser.add_argument("--img_height", type=int, default=128, help="size of image height")
-parser.add_argument("--img_width", type=int, default=128, help="size of image width")
-parser.add_argument("--channels", type=int, default=1, help="number of image channels")
-parser.add_argument("--plot_interval", type=int, default=-1, help="epoch interval between saving plots (disable with -1)")
-parser.add_argument("--checkpoint_interval", type=int, default=1, help="interval between saving model checkpoints")
-parser.add_argument("--n_downsample", type=int, default=2, help="number downsampling layers in encoder")
-parser.add_argument("--dim", type=int, default=32, help="number of filters in first encoder layer")
-
-opt = parser.parse_args()
-print(opt)
-
-cuda = True if torch.cuda.is_available() else False
-
-# Create sample and checkpoint directories
-os.makedirs("saved_models/%s" % opt.model_name, exist_ok=True)
-
-# Losses
-criterion_GAN = torch.nn.MSELoss()
-criterion_pixel = torch.nn.L1Loss()
-
-input_shape = (opt.channels, opt.img_height, opt.img_width)
-
-# Dimensionality (channel-wise) of image embedding
-shared_dim = opt.dim * 2 ** opt.n_downsample
-
-# Initialize generators and discriminators
-encoder = Encoder(dim=opt.dim, in_channels=opt.channels, n_downsample=opt.n_downsample)
-shared_G = ResidualBlock(features=shared_dim)
-G = [Generator(dim=opt.dim, out_channels=opt.channels, n_upsample=opt.n_downsample, shared_block=shared_G) for _ in range(opt.n_spkrs)]
-D = [Discriminator(input_shape) for _ in range(opt.n_spkrs)]
-
-if cuda:
-    encoder = encoder.cuda()
-    G = [G_n.cuda() for G_n in G]
-    D = [D_n.cuda() for D_n in D]
-    criterion_GAN.cuda()
-    criterion_pixel.cuda()
-
-if opt.epoch != 0:
-    # Load pretrained models
-    encoder.load_state_dict(torch.load("saved_models/%s/encoder_%02d.pth" % (opt.model_name, opt.epoch-1)))
-    for n in range(opt.n_spkrs):
-        G[n].load_state_dict(torch.load("saved_models/%s/G%d_%02d.pth" % (opt.model_name, n+1, opt.epoch-1)))
-        D[n].load_state_dict(torch.load("saved_models/%s/D%d_%02d.pth" % (opt.model_name, n+1, opt.epoch-1)))
-else:
-    # Initialize weights
-    encoder.apply(weights_init_normal)
-    for n in range(opt.n_spkrs):
-        G[n].apply(weights_init_normal)
-        D[n].apply(weights_init_normal)
-
-# Loss weights
-lambda_0 = 10   # GAN
-lambda_1 = 0.1  # KL (encoded spect)
-lambda_2 = 100  # ID pixel-wise
-lambda_3 = 0.1  # KL (encoded translated spect)
-lambda_4 = 100  # Cycle pixel-wise
-lambda_5 = 10   # latent space L1
-
-# Optimizers
-optimizer_G = torch.optim.Adam(
-    itertools.chain(encoder.parameters(), *[G_n.parameters() for G_n in G]),
-    lr=opt.lr,
-    betas=(opt.b1, opt.b2),
-)
-optimizer_D = [torch.optim.Adam(D_n.parameters(), lr=opt.lr, betas=(opt.b1, opt.b2)) for D_n in D]
-
-# Learning rate update schedulers
-lr_scheduler_G = torch.optim.lr_scheduler.LambdaLR(
-    optimizer_G, lr_lambda=LambdaLR(opt.n_epochs, opt.epoch, opt.decay_epoch).step
-)
-lr_scheduler_D = [torch.optim.lr_scheduler.LambdaLR(
-                    optimizer_D_n, lr_lambda=LambdaLR(opt.n_epochs, opt.epoch, opt.decay_epoch).step
-                ) for optimizer_D_n in optimizer_D]
-
-Tensor = torch.cuda.FloatTensor if cuda else torch.Tensor
-
-# Prepare dataloader
-dataloader = torch.utils.data.DataLoader(
-    DataProc(opt, split='train'),
-    batch_size=opt.batch_size,
-    shuffle=True,
-    num_workers=opt.n_cpu,
-    pin_memory=True
-)
 
 def compute_kl(mu):
     mu_2 = torch.pow(mu, 2)
@@ -245,8 +148,7 @@ def train_global():
     for epoch in range(opt.epoch, opt.n_epochs):
 
         losses = {'G': [],'D': []}
-        #progress = tqdm(enumerate(dataloader),desc='',total=len(dataloader))
-        progress = tqdm(enumerate(dataloader), total=len(dataloader))
+        progress = tqdm(enumerate(dataloader),desc='',total=len(dataloader))
 	
         for i, batch in progress:
 
@@ -277,4 +179,102 @@ def train_global():
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--epoch", type=int, default=0, help="epoch to start training from")
+    parser.add_argument("--n_epochs", type=int, default=100, help="number of epochs of training")
+    parser.add_argument("--model_name", type=str, help="name of the model")
+    parser.add_argument("--dataset", type=str, help="path to dataset for training")
+    parser.add_argument("--n_spkrs", type=int, default=2, help="number of speakers for conversion, must match that of preprocessing")
+    parser.add_argument("--batch_size", type=int, default=4, help="size of the batches")
+    parser.add_argument("--lr", type=float, default=0.0001, help="adam: learning rate")
+    parser.add_argument("--b1", type=float, default=0.5, help="adam: decay of first order momentum of gradient")
+    parser.add_argument("--b2", type=float, default=0.999, help="adam: decay of first order momentum of gradient")
+    parser.add_argument("--decay_epoch", type=int, default=50, help="epoch from which to start lr decay")
+    parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads to use during batch generation")
+    parser.add_argument("--img_height", type=int, default=128, help="size of image height")
+    parser.add_argument("--img_width", type=int, default=128, help="size of image width")
+    parser.add_argument("--channels", type=int, default=1, help="number of image channels")
+    parser.add_argument("--plot_interval", type=int, default=-1, help="epoch interval between saving plots (disable with -1)")
+    parser.add_argument("--checkpoint_interval", type=int, default=1, help="interval between saving model checkpoints")
+    parser.add_argument("--n_downsample", type=int, default=2, help="number downsampling layers in encoder")
+    parser.add_argument("--dim", type=int, default=32, help="number of filters in first encoder layer")
+
+    opt = parser.parse_args()
+    print(opt)
+
+    cuda = True if torch.cuda.is_available() else False
+
+    # Create sample and checkpoint directories
+    os.makedirs("saved_models/%s" % opt.model_name, exist_ok=True)
+
+    # Losses
+    criterion_GAN = torch.nn.MSELoss()
+    criterion_pixel = torch.nn.L1Loss()
+
+    input_shape = (opt.channels, opt.img_height, opt.img_width)
+
+    # Dimensionality (channel-wise) of image embedding
+    shared_dim = opt.dim * 2 ** opt.n_downsample
+
+    # Initialize generators and discriminators
+    encoder = Encoder(dim=opt.dim, in_channels=opt.channels, n_downsample=opt.n_downsample)
+    shared_G = ResidualBlock(features=shared_dim)
+    G = [Generator(dim=opt.dim, out_channels=opt.channels, n_upsample=opt.n_downsample, shared_block=shared_G) for _ in range(opt.n_spkrs)]
+    D = [Discriminator(input_shape) for _ in range(opt.n_spkrs)]
+
+    if cuda:
+        encoder = encoder.cuda()
+        G = [G_n.cuda() for G_n in G]
+        D = [D_n.cuda() for D_n in D]
+        criterion_GAN.cuda()
+        criterion_pixel.cuda()
+
+    if opt.epoch != 0:
+        # Load pretrained models
+        encoder.load_state_dict(torch.load("saved_models/%s/encoder_%02d.pth" % (opt.model_name, opt.epoch-1)))
+        for n in range(opt.n_spkrs):
+            G[n].load_state_dict(torch.load("saved_models/%s/G%d_%02d.pth" % (opt.model_name, n+1, opt.epoch-1)))
+            D[n].load_state_dict(torch.load("saved_models/%s/D%d_%02d.pth" % (opt.model_name, n+1, opt.epoch-1)))
+    else:
+        # Initialize weights
+        encoder.apply(weights_init_normal)
+        for n in range(opt.n_spkrs):
+            G[n].apply(weights_init_normal)
+            D[n].apply(weights_init_normal)
+
+    # Loss weights
+    lambda_0 = 10   # GAN
+    lambda_1 = 0.1  # KL (encoded spect)
+    lambda_2 = 100  # ID pixel-wise
+    lambda_3 = 0.1  # KL (encoded translated spect)
+    lambda_4 = 100  # Cycle pixel-wise
+    lambda_5 = 10   # latent space L1
+
+    # Optimizers
+    optimizer_G = torch.optim.Adam(
+        itertools.chain(encoder.parameters(), *[G_n.parameters() for G_n in G]),
+        lr=opt.lr,
+        betas=(opt.b1, opt.b2),
+    )
+    optimizer_D = [torch.optim.Adam(D_n.parameters(), lr=opt.lr, betas=(opt.b1, opt.b2)) for D_n in D]
+
+    # Learning rate update schedulers
+    lr_scheduler_G = torch.optim.lr_scheduler.LambdaLR(
+        optimizer_G, lr_lambda=LambdaLR(opt.n_epochs, opt.epoch, opt.decay_epoch).step
+    )
+    lr_scheduler_D = [torch.optim.lr_scheduler.LambdaLR(
+                        optimizer_D_n, lr_lambda=LambdaLR(opt.n_epochs, opt.epoch, opt.decay_epoch).step
+                    ) for optimizer_D_n in optimizer_D]
+
+    Tensor = torch.cuda.FloatTensor if cuda else torch.Tensor
+
+    # Prepare dataloader
+    dataloader = torch.utils.data.DataLoader(
+        DataProc(opt, split='train'),
+        batch_size=opt.batch_size,
+        shuffle=True,
+        num_workers=opt.n_cpu,
+        pin_memory=True
+    )
+
     train_global()
