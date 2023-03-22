@@ -267,12 +267,12 @@ def train_global():
             for n in range(opt.n_spkrs):
                 lr_scheduler_D[n].step()
 
-    if opt.checkpoint_interval != -1 and (epoch+1) % opt.checkpoint_interval == 0:
-        # Save model checkpoints
-        torch.save(encoder.state_dict(), "saved_models/%s/encoder_%02d.pth" % (opt.model_name, epoch))
-        for n in range(opt.n_spkrs):
-            torch.save(G[n].state_dict(), "saved_models/%s/G%d_%02d.pth" % (opt.model_name, n+1, epoch))
-            torch.save(D[n].state_dict(), "saved_models/%s/D%d_%02d.pth" % (opt.model_name, n+1, epoch))
+        if opt.checkpoint_interval != -1 and (epoch+1) % opt.checkpoint_interval == 0:
+            # Save model checkpoints
+            torch.save(encoder.state_dict(), "saved_models/%s/encoder_%02d.pth" % (opt.model_name, epoch))
+            for n in range(opt.n_spkrs):
+                torch.save(G[n].state_dict(), "saved_models/%s/G%d_%02d.pth" % (opt.model_name, n+1, epoch))
+                torch.save(D[n].state_dict(), "saved_models/%s/D%d_%02d.pth" % (opt.model_name, n+1, epoch))
 
 
 if __name__ == '__main__':
