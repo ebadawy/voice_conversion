@@ -245,7 +245,8 @@ def train_global():
     for epoch in range(opt.epoch, opt.n_epochs):
 
         losses = {'G': [],'D': []}
-        progress = tqdm(enumerate(dataloader),desc='',total=len(dataloader))
+        #progress = tqdm(enumerate(dataloader),desc='',total=len(dataloader))
+        progress = tqdm(enumerate(dataloader), total=len(dataloader))
 	
         for i, batch in progress:
 
