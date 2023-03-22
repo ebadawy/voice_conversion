@@ -247,32 +247,32 @@ def train_global():
         losses = {'G': [],'D': []}
         progress = tqdm(enumerate(dataloader),desc='',total=len(dataloader))
 	
-    for i, batch in progress:
-		
-        # For each target, randomly choose a source for training
-        for trg_id in range(opt.n_spkrs):
-			
-            potential_src_ids = list(range(opt.n_spkrs))
-            potential_src_ids.pop(trg_id)  # cant have same src as trg
-		
-            src_id = random.choice(potential_src_ids)   
-            losses = train_local(i, epoch, batch, src_id, trg_id, losses)
+        for i, batch in progress:
 
-            # Update progress bar
-            progress.set_description("[Epoch %d/%d] [D loss: %f] [G loss: %f] "
-            % (epoch, opt.n_epochs, np.mean(losses['D']), np.mean(losses['G'])))
+            # For each target, randomly choose a source for training
+            for trg_id in range(opt.n_spkrs):
 
-        # Update learning rates
-        lr_scheduler_G.step()
-        for n in range(opt.n_spkrs):
-            lr_scheduler_D[n].step()
+                potential_src_ids = list(range(opt.n_spkrs))
+                potential_src_ids.pop(trg_id)  # cant have same src as trg
 
-        if opt.checkpoint_interval != -1 and (epoch+1) % opt.checkpoint_interval == 0:
-            # Save model checkpoints
-            torch.save(encoder.state_dict(), "saved_models/%s/encoder_%02d.pth" % (opt.model_name, epoch))
+                src_id = random.choice(potential_src_ids)   
+                losses = train_local(i, epoch, batch, src_id, trg_id, losses)
+
+                # Update progress bar
+                progress.set_description("[Epoch %d/%d] [D loss: %f] [G loss: %f] "
+                % (epoch, opt.n_epochs, np.mean(losses['D']), np.mean(losses['G'])))
+
+            # Update learning rates
+            lr_scheduler_G.step()
             for n in range(opt.n_spkrs):
-                torch.save(G[n].state_dict(), "saved_models/%s/G%d_%02d.pth" % (opt.model_name, n+1, epoch))
-                torch.save(D[n].state_dict(), "saved_models/%s/D%d_%02d.pth" % (opt.model_name, n+1, epoch))
+                lr_scheduler_D[n].step()
+
+    if opt.checkpoint_interval != -1 and (epoch+1) % opt.checkpoint_interval == 0:
+        # Save model checkpoints
+        torch.save(encoder.state_dict(), "saved_models/%s/encoder_%02d.pth" % (opt.model_name, epoch))
+        for n in range(opt.n_spkrs):
+            torch.save(G[n].state_dict(), "saved_models/%s/G%d_%02d.pth" % (opt.model_name, n+1, epoch))
+            torch.save(D[n].state_dict(), "saved_models/%s/D%d_%02d.pth" % (opt.model_name, n+1, epoch))
 
 
 if __name__ == '__main__':
