@@ -211,6 +211,7 @@ def reconstruct_waveform(mel, n_iter=32):
     mel spectrogram back into a waveform."""
     denormalized = denormalize(mel)
     amp_mel = db_to_amp(denormalized)
+    amp_mel = np.square(amp_mel)
     S = librosa.feature.inverse.mel_to_stft(
         amp_mel, power=1, sr=sample_rate,
         n_fft=n_fft, fmin=fmin)
